@@ -1,0 +1,13 @@
+/.DS_Store
+/.gradle
+/.idea/workspace.xml
+/.idea/libraries/*.xml
+/local.properties
+/build
+/libraries/standout/build
+
+
+*.aar
+*.jar
+*.class
+*.iml

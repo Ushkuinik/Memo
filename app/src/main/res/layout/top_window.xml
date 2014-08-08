@@ -1,0 +1,51 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1"
+    android:background="#dd001122"
+    android:baselineAligned="false">
+
+    <LinearLayout
+        android:id="@+id/layoutTitle"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="#dd001122">
+
+        <ImageButton
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:id="@+id/btnQuit"
+            android:src="@drawable/ic_action_remove_holo_dark"
+            android:background="@drawable/image_button" />
+
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:text="Hello"
+            android:textSize="20sp"
+            android:textColor="@android:color/primary_text_dark"
+            android:gravity="center_vertical"
+            android:padding="4dp"/>
+
+        <ImageButton
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:id="@+id/btnCalendar"
+            android:src="@drawable/ic_action_calendar_holo_dark"
+            android:background="@drawable/image_button" />
+
+        <ImageButton
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:id="@+id/btnSettings"
+            android:src="@drawable/ic_action_overflow_holo_dark"
+            android:background="@drawable/image_button" />
+
+    </LinearLayout>
+
+</LinearLayout>
