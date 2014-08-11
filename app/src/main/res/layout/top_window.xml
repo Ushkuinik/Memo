@@ -14,38 +14,65 @@
         android:background="#dd001122">
 
         <ImageButton
-            android:layout_width="46dp"
-            android:layout_height="46dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:id="@+id/btnQuit"
             android:src="@drawable/ic_action_remove_holo_dark"
             android:background="@drawable/image_button" />
 
-        <TextView
-            android:id="@+id/txtTitle"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:maxLines="1"
-            android:text="Hello"
-            android:textSize="20sp"
-            android:textColor="@android:color/primary_text_dark"
-            android:gravity="center_vertical"
-            android:padding="4dp"/>
-
-        <ImageButton
-            android:layout_width="46dp"
-            android:layout_height="46dp"
+        <!--ImageButton
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:id="@+id/btnCalendar"
             android:src="@drawable/ic_action_calendar_holo_dark"
-            android:background="@drawable/image_button" />
+            android:background="@drawable/image_button" /-->
 
         <ImageButton
-            android:layout_width="46dp"
-            android:layout_height="46dp"
-            android:id="@+id/btnSettings"
-            android:src="@drawable/ic_action_overflow_holo_dark"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/btnEdit"
+            android:src="@drawable/ic_action_edit_holo_dark"
             android:background="@drawable/image_button" />
 
+        <!--ImageButton
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/btnCamera"
+            android:src="@drawable/ic_action_camera_holo_dark"
+            android:background="@drawable/image_button" /-->
+
+        <ImageButton
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/btnAttachment"
+            android:src="@drawable/ic_action_attachment_holo_dark"
+            android:background="@drawable/image_button"
+            android:visibility="gone"
+            />
+
+        <ImageButton
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/btnSave"
+            android:src="@drawable/ic_action_save_holo_dark"
+            android:background="@drawable/image_button"
+            android:visibility="gone"
+            />
     </LinearLayout>
+
+    <view
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/body"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        class="company.memo.TopWindow$LineEditText"
+        android:background="#d0ffffff"
+        android:capitalize="sentences"
+        android:fadingEdge="vertical"
+        android:gravity="top"
+        android:padding="5dp"
+        android:scrollbars="vertical"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"/>
 
 </LinearLayout>

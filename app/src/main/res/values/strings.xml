@@ -4,5 +4,7 @@
     <string name="app_name">Memo</string>
     <string name="action_settings">Settings</string>
     <string name="action_window">Window</string>
-
+    <string name="menu_calendar">Calendar event</string>
+    <string name="menu_photo">Photo</string>
+    <string name="menu_audio">Audio record</string>
 </resources>
