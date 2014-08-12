@@ -1,16 +1,24 @@
 package company.memo;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.util.Log;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
  * Detailed information about contact
  */
 public class Contact {
+
+    private final String LOG_TAG = this.getClass().toString();
 
     private final int INDEX_INCOMING_NUMBER = 0;
     /**
@@ -25,6 +33,7 @@ public class Contact {
     private String  mName;
     private long    mId;
     private int     mMemoCount;
+    private Uri     mPhotoUri;
 
 
     /**
@@ -70,6 +79,11 @@ public class Contact {
     }
 
 
+    public Uri getPhotoUri() {
+        return mPhotoUri;
+    }
+
+
     public String getIncomingNumber() {
         return numbers.get(INDEX_INCOMING_NUMBER);
     }
@@ -90,12 +104,17 @@ public class Contact {
         // 1. Get contact RecordId & Name
         String[] projection = new String[] {
                 ContactsContract.PhoneLookup._ID,
-                ContactsContract.PhoneLookup.DISPLAY_NAME
+                ContactsContract.PhoneLookup.DISPLAY_NAME,
+//                ContactsContract.PhoneLookup.PHOTO_FILE_ID,
+                ContactsContract.PhoneLookup.PHOTO_ID,
+                ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI,
+                ContactsContract.PhoneLookup.PHOTO_URI
         };
 
         Uri contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(_number));
+        ContentResolver contentResolver = mContext.getContentResolver();
 
-        Cursor cursor = mContext.getContentResolver().query(contactUri, projection, null, null, null);
+        Cursor cursor = contentResolver.query(contactUri, projection, null, null, null);
         if(cursor != null) {
             if(cursor.moveToFirst()) {
 
@@ -103,8 +122,9 @@ public class Contact {
                 this.mName = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
                 if((this.mName == null) || (this.mName == ""))
                     this.mName = _number;
+                this.mPhotoUri = Uri.parse(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)));
 
-                //Log.d(this.LOG_TAG, "Contact found. Id: " + mRecordId);
+                Log.d(this.LOG_TAG, "Contact found. Id: " + mId);
 
                 // 2. Get all phones and emails, related to this contact mRecordId
                 String[] projection2 = new String[] {
@@ -119,7 +139,7 @@ public class Contact {
 
                 String[] selectArgs2 = new String[] {Long.toString(this.mId)};
 
-                Cursor cursor2 = mContext.getContentResolver().query(
+                Cursor cursor2 = contentResolver.query(
                         ContactsContract.Data.CONTENT_URI,
                         projection2,
                         select2,

@@ -5,12 +5,12 @@
               android:orientation="horizontal">
 
     <LinearLayout
-        android:layout_width="48dp"
+        android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/Time"
+            android:id="@+id/textTime"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="0dp"
@@ -18,7 +18,7 @@
             android:text="15:55"
             android:textSize="16sp" />
         <TextView
-            android:id="@+id/DayMonths"
+            android:id="@+id/textDayMonth"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="0dp"
@@ -26,7 +26,7 @@
             android:text="18/08"
             android:textSize="14sp" />
         <TextView
-            android:id="@+id/Year"
+            android:id="@+id/textYear"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="0dp"
@@ -36,21 +36,22 @@
     </LinearLayout>
 
     <TextView
-        android:id="@+id/textDatetime"
-        android:layout_width="wrap_content"
+        android:id="@+id/textBody"
+        android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_margin="2dp"
         android:gravity="center_vertical"
         android:text="Agent Smith\nSample memo text\nOne more line...\nAnd one more"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        android:layout_weight="1" />
 
     <ImageView
-        android:id="@+id/iconThumbnail"
+        android:id="@+id/imagePreview"
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:layout_margin="2dp"
         android:padding="4dp"
         android:src="@drawable/ic_launcher"
-        android:baselineAlignBottom="false"/>
+        android:layout_weight="0" />
 
 </LinearLayout>

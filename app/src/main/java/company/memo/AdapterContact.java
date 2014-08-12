@@ -14,14 +14,14 @@ import java.util.ArrayList;
 /**
  *
  */
-public class ContactAdapter extends ArrayAdapter<Contact> {
+public class AdapterContact extends ArrayAdapter<Contact> {
     private final String LOG_TAG = this.getClass().toString();
     private LayoutInflater     inflater;
     private ArrayList<Contact> mContacts;
     private Context            mContext;
 
 
-    ContactAdapter(final Context _context, final ArrayList<Contact> _contacts) {
+    AdapterContact(final Context _context, final ArrayList<Contact> _contacts) {
         super(_context, R.layout.list_item_contact, _contacts);
 
         mContext = _context;
@@ -52,17 +52,30 @@ public class ContactAdapter extends ArrayAdapter<Contact> {
     public View getView(final int position, final View convertView, final ViewGroup parent) {
 
         View view = convertView;
-        if (view == null)
+        if(view == null) {
             view = this.inflater.inflate(R.layout.list_item_contact, parent, false);
+        }
 
-        Contact contact = getContact(position);
+        Contact contact = this.getContact(position);
 
         Log.d(this.LOG_TAG, ": getView: pos: " + position + ", name: " + contact.getIncomingNumber() + ", count: " + contact.getMemoCount());
+
+        view.setTag(contact.getIncomingNumber());
+
         ((TextView) view.findViewById(R.id.name)).setText(contact.getName());
+
         ((TextView) view.findViewById(R.id.count)).setText(Integer.toString(contact.getMemoCount()));
+
+        if(contact.getPhotoUri() != null) {
+            ((ImageView) view.findViewById(R.id.photo)).setImageURI(contact.getPhotoUri());
+        }
+        else {
+//            ((ImageView) view.findViewById(R.id.photo)).setImageResource(R.drawable.ic_contact_picture_2);
+        }
 
         return view;
     }
+
 
     Contact getContact(final int position) {
         return (this.getItem(position));

@@ -1,7 +1,9 @@
 package company.memo;
 
 import android.content.Context;
-import android.database.Cursor;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,8 +12,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.CalendarContract;
-import android.provider.ContactsContract;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -25,7 +26,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,11 +61,14 @@ public class TopWindow extends StandOutWindow {
 
 
     private View view = null;
-    private int       mRecordId;    // window mRecordId
-    private SizeState mSizeState;
-    private DbAdapter mDbAdapter;
-    private String    mPhoneNumber;
+    private int             mWindowId;    // window mWindowId
+    private SizeState       mSizeState;
+    private AdapterDatabase mAdapterDatabase;
+    private String          mPhoneNumber;
     private long mMemoId = 0;
+
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+    private Uri fileUri;
 
 
     private Point getWindowSize() {
@@ -102,8 +105,8 @@ public class TopWindow extends StandOutWindow {
 
         mSizeState = SizeState.SIZE_STATE_MINIMIZED;
 
-        mDbAdapter = new DbAdapter(this);
-        mDbAdapter.open();
+        mAdapterDatabase = new AdapterDatabase(this);
+        mAdapterDatabase.open();
     }
 
 
@@ -150,7 +153,12 @@ public class TopWindow extends StandOutWindow {
     public void onDestroy() {
         Log.d(this.LOG_TAG, "onDestroy");
         super.onDestroy();
-        mDbAdapter.close();
+        mAdapterDatabase.close();
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove("windowId");
+        editor.commit();
     }
 
 
@@ -169,7 +177,7 @@ public class TopWindow extends StandOutWindow {
 
 
     /**
-     * @param id    The mRecordId representing the window.
+     * @param id    The mWindowId representing the window.
      * @param frame - body frame to be filled by custom content
      */
     @Override
@@ -181,7 +189,12 @@ public class TopWindow extends StandOutWindow {
 
         LayoutInflater layoutInflater = LayoutInflater.from(this);
         this.view = layoutInflater.inflate(R.layout.top_window, frame, true);
-        this.mRecordId = id;
+        this.mWindowId = id;
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putInt("windowId", this.mWindowId);
+        editor.commit();
+
 
 /*
         if(adapter != null)
@@ -232,9 +245,9 @@ public class TopWindow extends StandOutWindow {
             public void onClick(View v) {
                 String text = ((EditText)view.findViewById(R.id.body)).getText().toString();
                 if(mMemoId == 0)
-                    mMemoId = mDbAdapter.createMemo(mPhoneNumber, text);
+                    mMemoId = mAdapterDatabase.createMemo(mPhoneNumber, text);
                 else
-                    mDbAdapter.updateMemo(mMemoId, mPhoneNumber, text);
+                    mAdapterDatabase.updateMemo(mMemoId, mPhoneNumber, text);
                 Toast.makeText(getApplicationContext(), "Save memo: " + mMemoId, Toast.LENGTH_LONG).show();
             }
         });
@@ -248,7 +261,7 @@ public class TopWindow extends StandOutWindow {
 
 
     private void resizeWindow() {
-        Window window = getWindow(mRecordId);
+        Window window = getWindow(mWindowId);
         Point p = getWindowSize();
         int width = p.x;
         int height = p.y;
@@ -278,7 +291,7 @@ public class TopWindow extends StandOutWindow {
      * The window should not be resizable and movable. It should be always on top until closed by
      * CallDetectService.
      *
-     * @param id The mRecordId of the window.
+     * @param id The mWindowId of the window.
      * @return Flags with window parameters
      */
     @Override
@@ -312,18 +325,25 @@ public class TopWindow extends StandOutWindow {
     }
 
 
+    // return an Intent that restores the MultiWindow
+    @Override
+    public Intent getHiddenNotificationIntent(int id) {
+        return StandOutWindow.getShowIntent(this, getClass(), id);
+    }
+
+
     /**
      * Receives a phone number of incoming call from CallDetectService and starts ListView
      * populating.
      *
-     * @param id          The mRecordId of your receiving window.
+     * @param id          The mWindowId of your receiving window.
      * @param requestCode The sending window provided this request code to declare what
      *                    kind of data is being sent.
      * @param data        A bundle of parceleable data that was sent to your receiving
      *                    window.
      * @param fromCls     The sending window's class. Provided if the sender wants a
      *                    result.
-     * @param fromId      The sending window's mRecordId. Provided if the sender wants a
+     * @param fromId      The sending window's mWindowId. Provided if the sender wants a
      */
     @Override
     public void onReceiveData(final int id, final int requestCode, final Bundle data,
@@ -345,7 +365,7 @@ public class TopWindow extends StandOutWindow {
                 mPhoneNumber = data.getString("phoneNumber");
                 mPhoneNumber = mPhoneNumber.replace("-", "");
                 Log.d(this.LOG_TAG, "onReceiveData(phoneNumber = " + mPhoneNumber + ")");
-                //((LineEditText)(view.findViewById(R.mRecordId.body))).setText(number);
+                //((LineEditText)(view.findViewById(R.mWindowId.body))).setText(number);
                 break;
 
             default:
@@ -359,7 +379,7 @@ public class TopWindow extends StandOutWindow {
 
     public void setTitle(final String _title) {
 /*
-        ((TextView) view.findViewById(R.mRecordId.txtTitle)).setText(_title);
+        ((TextView) view.findViewById(R.mWindowId.txtTitle)).setText(_title);
 */
     }
 
@@ -388,7 +408,7 @@ public class TopWindow extends StandOutWindow {
         void onNewEventFound(final Event event) {
 
             TopWindow.this.adapter.add(event);
-            ListView listRecords = (ListView) TopWindow.this.view.findViewById(R.mRecordId.listView);
+            ListView listRecords = (ListView) TopWindow.this.view.findViewById(R.mWindowId.listView);
             listRecords.setSelection(TopWindow.this.adapter.getCount() - 1);
 //          listRecords.smoothScrollToPosition(TopWindow.this.adapter.getCount() - 1);
         }
@@ -405,7 +425,7 @@ public class TopWindow extends StandOutWindow {
             // TODO Hide infinite progress
             // Close window if no events were found
             if(TopWindow.this.adapter.getCount() == 0) {
-                close(TopWindow.this.mRecordId);
+                close(TopWindow.this.mWindowId);
             }
         }
     }
@@ -463,13 +483,19 @@ public class TopWindow extends StandOutWindow {
             }
         }));
 
-        items.add(new DropDownListItem(R.drawable.ic_action_camera_holo_dark,
-                                       getResources().getString(R.string.menu_photo), new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), "New phono", Toast.LENGTH_SHORT).show();
-            }
-        }));
+        if(checkCameraHardware(this)) {
+            items.add(new DropDownListItem(R.drawable.ic_action_camera_holo_dark,
+                                           getResources().getString(R.string.menu_photo), new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), "New photo", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getBaseContext(), ActivityCameraDummy.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    hide(mWindowId);
+                    startActivity(intent);
+                }
+            }));
+        }
 
         items.add(new DropDownListItem(R.drawable.ic_action_mic_holo_dark,
                                        getResources().getString(R.string.menu_audio), new Runnable() {
@@ -480,6 +506,7 @@ public class TopWindow extends StandOutWindow {
         }));
         return items;
     }
+
 
     public PopupWindow getDropDown(final int id) {
         final List<DropDownListItem> items;
@@ -523,5 +550,16 @@ public class TopWindow extends StandOutWindow {
                 android.R.drawable.editbox_dropdown_dark_frame);
         dropDown.setBackgroundDrawable(background);
         return dropDown;
+    }
+
+    /** Check if this device has a camera */
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
+            // this device has a camera
+            return true;
+        } else {
+            // no camera on this device
+            return false;
+        }
     }
 }
