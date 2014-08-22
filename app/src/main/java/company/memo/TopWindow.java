@@ -21,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -60,10 +61,11 @@ public class TopWindow extends StandOutWindow {
 
 
 
-    private View view = null;
+    private View mView = null;
     private int             mWindowId;    // window mWindowId
     private SizeState       mSizeState;
     private AdapterDatabase mAdapterDatabase;
+    private AdapterMemoHorizontal mAdapterMemo;
     private String          mPhoneNumber;
     private long mMemoId = 0;
 
@@ -83,8 +85,20 @@ public class TopWindow extends StandOutWindow {
             case SIZE_STATE_HIDDEN:
                 break;
             case SIZE_STATE_MINIMIZED:
-                w = (int) Math.ceil(96 * dm.density);
-                h = (int) Math.ceil(48 * dm.density);
+                if(mPhoneNumber != null) {
+                    if(mAdapterMemo.getCount() > 0) {
+                        w = (int) Math.ceil(250 * dm.density);
+                        h = (int) Math.ceil(152 * dm.density);
+                    }
+                    else {
+                        w = (int) Math.ceil(96 * dm.density);
+                        h = (int) Math.ceil(48 * dm.density);
+                    }
+                }
+                else {
+                    w = (int) Math.ceil(96 * dm.density);
+                    h = (int) Math.ceil(48 * dm.density);
+                }
                 break;
             case SIZE_STATE_NORMAL:
                 w = (int) Math.ceil(250 * dm.density);
@@ -125,6 +139,7 @@ public class TopWindow extends StandOutWindow {
     public boolean onClose(int id, Window window) {
         Log.d(this.LOG_TAG, "onClose");
         mSizeState = SizeState.SIZE_STATE_MINIMIZED;
+        mMemoId = 0;
 
         return super.onClose(id, window);
     }
@@ -188,47 +203,45 @@ public class TopWindow extends StandOutWindow {
         mSizeState = SizeState.SIZE_STATE_MINIMIZED;
 
         LayoutInflater layoutInflater = LayoutInflater.from(this);
-        this.view = layoutInflater.inflate(R.layout.top_window, frame, true);
+        this.mView = layoutInflater.inflate(R.layout.top_window, frame, true);
         this.mWindowId = id;
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt("windowId", this.mWindowId);
         editor.commit();
 
-
 /*
         if(adapter != null)
             adapter.clear();
 */
 
-        View btnQuit = view.findViewById(R.id.btnQuit);
+
+        View btnQuit = mView.findViewById(R.id.btnQuit);
         btnQuit.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-            StandOutWindow.closeAll(TopWindow.this, TopWindow.class);
+                StandOutWindow.closeAll(TopWindow.this, TopWindow.class);
             }
         });
 
-        view.findViewById(R.id.btnEdit).setOnClickListener(new View.OnClickListener() {
+        mView.findViewById(R.id.btnExpand).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if(mSizeState == SizeState.SIZE_STATE_MINIMIZED) {
-                    mSizeState = SizeState.SIZE_STATE_NORMAL;
-                    view.findViewById(R.id.btnAttachment).setVisibility(View.VISIBLE);
-                    view.findViewById(R.id.btnSave).setVisibility(View.VISIBLE);
-                }
-                else if(mSizeState == SizeState.SIZE_STATE_NORMAL) {
-                    mSizeState = SizeState.SIZE_STATE_MINIMIZED;
-                    view.findViewById(R.id.btnSave).setVisibility(View.GONE);
-                }
-
-                resizeWindow();
+                setSizeState(SizeState.SIZE_STATE_NORMAL);
             }
         });
 
-        final ImageButton buttonAttachment = (ImageButton)view.findViewById(R.id.btnAttachment);
+        mView.findViewById(R.id.btnCollapse).setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                setSizeState(SizeState.SIZE_STATE_MINIMIZED);
+            }
+        });
+
+        final ImageButton buttonAttachment = (ImageButton)mView.findViewById(R.id.btnAttachment);
         buttonAttachment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -239,11 +252,11 @@ public class TopWindow extends StandOutWindow {
             }
         });
 
-        final ImageButton buttonSave = (ImageButton)view.findViewById(R.id.btnSave);
+        final ImageButton buttonSave = (ImageButton)mView.findViewById(R.id.btnSave);
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String text = ((EditText)view.findViewById(R.id.body)).getText().toString();
+                String text = ((EditText)mView.findViewById(R.id.body)).getText().toString();
                 if(mMemoId == 0)
                     mMemoId = mAdapterDatabase.createMemo(mPhoneNumber, text);
                 else
@@ -256,17 +269,42 @@ public class TopWindow extends StandOutWindow {
         Date curDateTime = new Date(msTime);
 
         SimpleDateFormat formatter = new SimpleDateFormat("d'/'M'/'y");
-        ((EditText)view.findViewById(R.id.body)).setText(formatter.format(curDateTime));
+//        ((EditText)mView.findViewById(R.id.body)).setText(formatter.format(curDateTime));
+        ((EditText)mView.findViewById(R.id.body)).setText("New memo.");
     }
 
 
+
+    private void setSizeState(SizeState _mode) {
+        mSizeState = _mode;
+        switch(mSizeState) {
+            case SIZE_STATE_MINIMIZED:
+                mView.findViewById(R.id.btnExpand).setVisibility(View.VISIBLE);
+                mView.findViewById(R.id.btnCollapse).setVisibility(View.GONE);
+                mView.findViewById(R.id.btnAttachment).setVisibility(View.GONE);
+                mView.findViewById(R.id.btnSave).setVisibility(View.GONE);
+                break;
+
+            case SIZE_STATE_NORMAL:
+                mSizeState = SizeState.SIZE_STATE_NORMAL;
+                mView.findViewById(R.id.btnExpand).setVisibility(View.GONE);
+                mView.findViewById(R.id.btnCollapse).setVisibility(View.VISIBLE);
+                mView.findViewById(R.id.btnAttachment).setVisibility(View.VISIBLE);
+                mView.findViewById(R.id.btnSave).setVisibility(View.VISIBLE);
+                resizeWindow();
+                break;
+
+            default:
+                break;
+        }
+        resizeWindow();
+    }
+
     private void resizeWindow() {
+
         Window window = getWindow(mWindowId);
         Point p = getWindowSize();
-        int width = p.x;
-        int height = p.y;
-
-        window.edit().setSize(width, height).commit();
+        window.edit().setSize(p.x, p.y).commit();
     }
 
 
@@ -366,6 +404,41 @@ public class TopWindow extends StandOutWindow {
                 mPhoneNumber = mPhoneNumber.replace("-", "");
                 Log.d(this.LOG_TAG, "onReceiveData(phoneNumber = " + mPhoneNumber + ")");
                 //((LineEditText)(view.findViewById(R.mWindowId.body))).setText(number);
+                /**
+                 * Populate horizontal list
+                 */
+                ArrayList<Memo> memos = mAdapterDatabase.getMemos(mPhoneNumber);
+                mAdapterMemo = new AdapterMemoHorizontal(this, memos);
+                HorizontalListView listMemos = (HorizontalListView)mView.findViewById(R.id.hsvMemos);
+                listMemos.setAdapter(mAdapterMemo);
+                listMemos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        String s = "Click: " + view.getTag().toString();
+                        Toast.makeText(TopWindow.this, s, Toast.LENGTH_SHORT).show();
+                        Log.d(LOG_TAG, s);
+
+                        long memo_id = ((Long) view.getTag()).longValue();
+                        Memo memo = mAdapterDatabase.getMemo(memo_id);
+                        String text = memo.getBody();
+                        mMemoId = memo.getId();
+                        ((EditText)mView.findViewById(R.id.body)).setText(text);
+
+                        setSizeState(SizeState.SIZE_STATE_NORMAL);
+                    }
+                });
+                listMemos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                        String s = "Long click: " + view.getTag().toString();
+                        Log.d(LOG_TAG, s);
+                        Toast.makeText(TopWindow.this, s, Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                });
+
+                resizeWindow();
+
                 break;
 
             default:
@@ -384,52 +457,6 @@ public class TopWindow extends StandOutWindow {
     }
 
 
-
-
-
-
-    /**
-     *
-     */
-
-    /*
-    private class PhoneDataRetriever extends EventRetriever {
-        private final String LOG_TAG = this.getClass().toString();
-
-
-        public PhoneDataRetriever(final Context c) {
-
-            super(c);
-            Log.d(this.LOG_TAG, "PhoneDataRetriever");
-        }
-
-
-        @Override
-        void onNewEventFound(final Event event) {
-
-            TopWindow.this.adapter.add(event);
-            ListView listRecords = (ListView) TopWindow.this.view.findViewById(R.mWindowId.listView);
-            listRecords.setSelection(TopWindow.this.adapter.getCount() - 1);
-//          listRecords.smoothScrollToPosition(TopWindow.this.adapter.getCount() - 1);
-        }
-
-
-        @Override
-        void onSearchStarted() {
-            // TODO Show infinite progress...
-        }
-
-
-        @Override
-        void onSearchFinished() {
-            // TODO Hide infinite progress
-            // Close window if no events were found
-            if(TopWindow.this.adapter.getCount() == 0) {
-                close(TopWindow.this.mWindowId);
-            }
-        }
-    }
-*/
 
     public static class LineEditText extends EditText {
         private Rect  mRect;
@@ -470,6 +497,8 @@ public class TopWindow extends StandOutWindow {
                 super.onDraw(canvas);
             }
         }
+
+
     }
 
 
@@ -489,7 +518,7 @@ public class TopWindow extends StandOutWindow {
                 @Override
                 public void run() {
                     Toast.makeText(getApplicationContext(), "New photo", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(getBaseContext(), ActivityCameraDummy.class);
+                    Intent intent = new Intent(getBaseContext(), ActivityCamera.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     hide(mWindowId);
                     startActivity(intent);
@@ -527,7 +556,7 @@ public class TopWindow extends StandOutWindow {
                                                      ViewGroup.LayoutParams.WRAP_CONTENT, true);
 
         for (final DropDownListItem item : items) {
-            ViewGroup listItem = (ViewGroup) view.inflate(this, R.layout.list_item_drop_down, null);
+            ViewGroup listItem = (ViewGroup) mView.inflate(this, R.layout.list_item_drop_down, null);
             list.addView(listItem);
 
             ImageView icon = (ImageView) listItem.findViewById(R.id.icon);

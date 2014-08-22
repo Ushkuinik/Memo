@@ -18,7 +18,7 @@ import wei.mark.standout.StandOutWindow;
 
 public class ActivityMain extends ActionBarActivity {
 
-    private final String LOG_TAG = this.getClass().toString();
+    private final String LOG_TAG = "ActivityMain";
 
     private AdapterDatabase mAdapterDatabase;
     private ArrayList<Contact> mContacts = new ArrayList<Contact>();

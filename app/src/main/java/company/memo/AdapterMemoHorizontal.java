@@ -5,7 +5,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -13,20 +15,17 @@ import java.util.ArrayList;
 /**
  *
  */
-public class AdapterMemo extends ArrayAdapter<Memo> {
+public class AdapterMemoHorizontal extends ArrayAdapter<Memo> {
     private final String LOG_TAG = this.getClass().toString();
     private LayoutInflater  inflater;
     private ArrayList<Memo> mMemos;
     private Context         mContext;
-    View.OnTouchListener mTouchListener;
 
-
-    AdapterMemo(final Context _context, final ArrayList<Memo> _memos, View.OnTouchListener _listener) {
-        super(_context, R.layout.list_item_memo, _memos);
+    AdapterMemoHorizontal(final Context _context, final ArrayList<Memo> _memos) {
+        super(_context, R.layout.list_item_memo_horizontal, _memos);
 
         mContext = _context;
         mMemos = _memos;
-        mTouchListener = _listener;
         this.inflater = (LayoutInflater) _context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -54,27 +53,18 @@ public class AdapterMemo extends ArrayAdapter<Memo> {
 
         View view = convertView;
         if(view == null) {
-            view = this.inflater.inflate(R.layout.list_item_memo, parent, false);
-            view.setOnTouchListener(mTouchListener);
+            view = this.inflater.inflate(R.layout.list_item_memo_horizontal, parent, false);
         }
 
         Memo memo = this.getMemo(position);
         Log.d(this.LOG_TAG, ": getView: pos: " + position + ", time: " + memo.getTime() + ", body: " + memo.getBody());
 
-        ((TextView) view.findViewById(R.id.textYear)).setText(memo.getYear());
-        ((TextView) view.findViewById(R.id.textDayMonth)).setText(memo.getDayMonth());
-        ((TextView) view.findViewById(R.id.textTime)).setText(memo.getTime());
-        ((TextView) view.findViewById(R.id.textBody)).setText(memo.getBody());
+        ((TextView) view.findViewById(R.id.textTimestamp)).setText(memo.getTime());
+        ((ImageView) view.findViewById(R.id.imageThumbnail)).setImageResource(R.drawable.ic_sheet);
 
         view.setTag(memo.getId());
 
         return view;
-    }
-
-
-    @Override
-    public boolean hasStableIds() {
-        return true;
     }
 
 

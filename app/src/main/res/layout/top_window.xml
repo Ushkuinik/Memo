@@ -12,53 +12,133 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:background="#dd001122">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnQuit"
+                android:src="@drawable/ic_action_remove_holo_dark"
+                android:background="@drawable/image_button" />
+
+            <!--ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnCalendar"
+                android:src="@drawable/ic_action_calendar_holo_dark"
+                android:background="@drawable/image_button" /-->
+
+
+            <!--ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnCamera"
+                android:src="@drawable/ic_action_camera_holo_dark"
+                android:background="@drawable/image_button" /-->
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnAttachment"
+                android:src="@drawable/ic_action_attachment_holo_dark"
+                android:background="@drawable/image_button"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnSave"
+                android:src="@drawable/ic_action_save_holo_dark"
+                android:background="@drawable/image_button"
+                android:visibility="gone" />
+
+        </LinearLayout>
 
         <ImageButton
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:id="@+id/btnQuit"
-            android:src="@drawable/ic_action_remove_holo_dark"
-            android:background="@drawable/image_button" />
-
-        <!--ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:id="@+id/btnCalendar"
-            android:src="@drawable/ic_action_calendar_holo_dark"
-            android:background="@drawable/image_button" /-->
-
-        <ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:id="@+id/btnEdit"
-            android:src="@drawable/ic_action_edit_holo_dark"
-            android:background="@drawable/image_button" />
-
-        <!--ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:id="@+id/btnCamera"
-            android:src="@drawable/ic_action_camera_holo_dark"
-            android:background="@drawable/image_button" /-->
-
-        <ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:id="@+id/btnAttachment"
-            android:src="@drawable/ic_action_attachment_holo_dark"
+            android:id="@+id/btnExpand"
+            android:src="@drawable/ic_action_expand"
             android:background="@drawable/image_button"
-            android:visibility="gone"
-            />
+            android:layout_gravity="right"
+            android:baselineAlignBottom="false"/>
 
         <ImageButton
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:id="@+id/btnSave"
-            android:src="@drawable/ic_action_save_holo_dark"
+            android:id="@+id/btnCollapse"
+            android:src="@drawable/ic_action_collapse"
             android:background="@drawable/image_button"
-            android:visibility="gone"
-            />
+            android:visibility="gone" />
     </LinearLayout>
+
+    <company.memo.HorizontalListView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:id="@+id/hsvMemos">
+
+<!--
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageView"
+                android:contentDescription="@string/Memo"
+                android:src="@drawable/ic_launcher"
+                android:minHeight="100dp"
+                android:minWidth="100dp"
+                android:layout_gravity="right"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageView2"
+                android:contentDescription="@string/Memo"
+                android:src="@drawable/ic_launcher"
+                android:minHeight="100dp"
+                android:minWidth="100dp"
+                android:layout_gravity="right"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageView3"
+                android:contentDescription="@string/Memo"
+                android:src="@drawable/ic_launcher"
+                android:minHeight="100dp"
+                android:minWidth="100dp"
+                android:layout_gravity="right"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageView4"
+                android:contentDescription="@string/Memo"
+                android:src="@drawable/ic_launcher"
+                android:minHeight="100dp"
+                android:minWidth="100dp"
+                android:layout_gravity="right"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageView5"
+                android:contentDescription="@string/Memo"
+                android:src="@drawable/ic_launcher"
+                android:minHeight="100dp"
+                android:minWidth="100dp"
+                android:layout_gravity="right"/>
+        </LinearLayout>
+-->
+    </company.memo.HorizontalListView>
 
     <view
         xmlns:android="http://schemas.android.com/apk/res/android"

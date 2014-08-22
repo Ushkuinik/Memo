@@ -78,7 +78,7 @@ public class ActivityCameraDummy extends Activity {
         Intent i = StandOutWindow.getShowIntent(this, TopWindow.class, windowId);
         Log.d(this.LOG_TAG, "restore id: " + windowId);
 
-        finish();
+        //finish();
     }
 
 

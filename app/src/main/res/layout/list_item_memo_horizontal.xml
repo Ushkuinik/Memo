@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:id="@+id/textTimestamp"
+        android:layout_gravity="left|top"
+        android:width="100dp"
+        android:text="20 Aug 14:49"
+        android:height="18dp"
+        android:gravity="center"
+        android:background="@android:color/black" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/imageThumbnail"
+        android:src="@drawable/ic_launcher"
+        android:minWidth="100dp"
+        android:minHeight="82dp"
+        android:maxHeight="82dp"
+        android:maxWidth="100dp"
+        android:longClickable="true"
+        android:background="@android:color/darker_gray" />
+</LinearLayout>

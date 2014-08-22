@@ -101,7 +101,13 @@ public class AdapterDatabase {
         return mCursor;
     }
 
+
     public ArrayList<Memo> getMemos(String _number) throws SQLException {
+        Log.d(this.LOG_TAG, "getMemos for number: [" + _number + "]");
+
+        if(_number == null) {
+            return null;
+        }
         String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_BODY};
         String selection = KEY_NUMBER + "=?";
         String[] selectionArgs = {_number};
@@ -140,6 +146,7 @@ public class AdapterDatabase {
         }
     }
 
+
     public boolean updateMemo(long _id, String _number, String _body) {
         ContentValues args = new ContentValues();
         args.put(KEY_NUMBER, _number);
@@ -147,6 +154,22 @@ public class AdapterDatabase {
         String selection = KEY_ID + "=" + _id;
 
         return m_db.update(DATABASE_TABLE, args, selection, null) > 0;
+    }
+
+
+    public Memo getMemo(long _id) {
+        Memo memo = null;
+
+        Cursor cursor = this.fetchMemo(_id);
+
+        if(cursor != null) {
+            String number = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_NUMBER));
+            String body = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_BODY));
+            String timestamp = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_DATE));
+            memo = new Memo(_id, number, body, timestamp);
+        }
+
+        return memo;
     }
 
 

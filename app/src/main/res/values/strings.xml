@@ -9,5 +9,6 @@
     <string name="menu_audio">Audio record</string>
     <string name="title_activity_memo_list">ActivityMemoList</string>
     <string name="title_activity_camera_dummy">ActivityMemoList</string>
+    <string name="Memo">Memo</string>
 
 </resources>

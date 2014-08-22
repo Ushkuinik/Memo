@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  *
@@ -24,8 +25,9 @@ public class Memo {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
             this.mDate = format.parse(_timestamp);
-            this.mCalendar.setTime(mDate);
-
+            int tzOffset = TimeZone.getDefault().getRawOffset();
+            this.mDate.setTime(this.mDate.getTime() + tzOffset);
+            this.mCalendar.setTime(this.mDate);
         }
         catch(ParseException e) {
             e.printStackTrace();
@@ -46,7 +48,7 @@ public class Memo {
         return mCalendar.get(Calendar.YEAR) + "";
     }
     public String getDayMonth() {
-        return mCalendar.get(Calendar.DAY_OF_MONTH) + " / " + mCalendar.get(Calendar.MONTH);
+        return mCalendar.get(Calendar.DAY_OF_MONTH) + " / " + (mCalendar.get(Calendar.MONTH) + 1);
     }
     public String getTime() {
         return mCalendar.get(Calendar.HOUR_OF_DAY) + ":" + mCalendar.get(Calendar.MINUTE);
