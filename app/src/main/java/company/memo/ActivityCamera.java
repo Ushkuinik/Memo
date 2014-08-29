@@ -143,7 +143,7 @@ public class ActivityCamera extends Activity {
                 fos.write(data);
                 fos.close();
 
-                final int THUMBSIZE = 100;
+                final int THUMBSIZE = 300;
                 String thumbName = removeExtension(pictureFile.getName()) + "_thumb.jpg";
                 String thumbPath = pictureFile.getParent() + "/" + thumbName;
                 Log.d(LOG_TAG, "thumb path: " + thumbPath);
@@ -153,7 +153,7 @@ public class ActivityCamera extends Activity {
                 Bitmap thumbBitmap = ThumbnailUtils.extractThumbnail(srcBitmap, THUMBSIZE, THUMBSIZE);
 
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                thumbBitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+                thumbBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
                 byte[] byteArray = stream.toByteArray();
                 fos.write(byteArray);
                 fos.close();

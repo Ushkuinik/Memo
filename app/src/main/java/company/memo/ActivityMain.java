@@ -1,5 +1,17 @@
+//TODO: Create Memo edit activity
+//TODO: Create memo preview thumbnails
+//TODO: Crop photo
+//TODO: Memo preview in memo list
+//TODO: Picture preview on click
+//TODO: Add calendar support
+//TODO: Add voice recording
+//TODO: Memo deleting on swipe should be reworked. Disabled for now
+
+
 package company.memo;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -48,9 +60,6 @@ public class ActivityMain extends ActionBarActivity {
     }
 
 
-    /**
-     * Destroy all fragments and loaders.
-     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -62,6 +71,10 @@ public class ActivityMain extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.activity_main, menu);
+
+        MenuItem menuPower = (MenuItem)menu.findItem(R.id.action_power);
+        menuPower.setChecked(isServiceRunning(CallDetectService.class));
+
         return true;
     }
 
@@ -78,6 +91,20 @@ public class ActivityMain extends ActionBarActivity {
                 Bundle bundle = new Bundle();
                 bundle.putString("phoneNumber", "1234");
                 StandOutWindow.sendData(this, TopWindow.class, StandOutWindow.DEFAULT_ID, CallDetectService.GOT_PHONE_NUMBER, bundle, null, 0);
+                break;
+
+            case R.id.action_power:
+                item.setChecked(!item.isChecked()); // change checked state
+
+                Intent intent = new Intent(ActivityMain.this, CallDetectService.class);
+                if (item.isChecked()) {
+                    startService(intent);
+                    Toast.makeText(this, "Service started", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    stopService(intent);
+                    Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -96,5 +123,16 @@ public class ActivityMain extends ActionBarActivity {
         this.mAdapterContact = new AdapterContact(this, mContacts);
         ListView listContacts = (ListView)findViewById(R.id.listView);
         listContacts.setAdapter(this.mAdapterContact);
+    }
+
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

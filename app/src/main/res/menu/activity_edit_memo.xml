@@ -1,0 +1,33 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="company.memo.ActivityEditMemo" >
+
+    <item android:id="@+id/action_attachment"
+          android:icon="@drawable/ic_action_paperclip_filled_holo_dark"
+          android:title="@string/action_attachment"
+          app:showAsAction="always" >
+        <menu>
+            <item
+                android:id="@+id/action_photo"
+                android:title="@string/menu_photo"
+                android:icon="@drawable/ic_action_camera_holo_dark" >
+            </item>
+            <item
+                android:id="@+id/action_calendar"
+                android:title="@string/menu_calendar"
+                android:icon="@drawable/ic_action_calendar_holo_dark" >
+            </item>
+            <item
+                android:id="@+id/action_audio"
+                android:title="@string/menu_audio"
+                android:icon="@drawable/ic_action_mic_holo_dark" >
+            </item>
+        </menu>
+    </item>
+
+    <item android:id="@+id/action_save"
+          android:icon="@drawable/ic_action_document_checked_filled_holo_dark"
+          android:title="@string/action_save"
+          app:showAsAction="always" />
+</menu>

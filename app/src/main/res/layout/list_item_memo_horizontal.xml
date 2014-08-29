@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent" >
+
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:id="@+id/imageThumbnail"
+        android:src="@drawable/ic_launcher"
+        android:minWidth="80dp"
+        android:minHeight="100dp"
+        android:maxHeight="100dp"
+        android:maxWidth="80dp"
+        android:longClickable="true"
+        android:background="@android:color/darker_gray" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:id="@+id/imageOverlay"
+        android:minWidth="80dp"
+        android:minHeight="100dp"
+        android:maxHeight="100dp"
+        android:maxWidth="80dp"
+        android:background="#44000000"
+        android:visibility="visible"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -11,21 +34,13 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:id="@+id/textTimestamp"
         android:layout_gravity="left|top"
-        android:width="100dp"
+        android:width="80dp"
         android:text="20 Aug 14:49"
-        android:height="18dp"
+        android:textSize="10sp"
+        android:paddingBottom="1dp"
+        android:singleLine="true"
         android:gravity="center"
-        android:background="@android:color/black" />
+        android:background="#aa000000"
+        android:textColor="#dddddd" />
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/imageThumbnail"
-        android:src="@drawable/ic_launcher"
-        android:minWidth="100dp"
-        android:minHeight="82dp"
-        android:maxHeight="82dp"
-        android:maxWidth="100dp"
-        android:longClickable="true"
-        android:background="@android:color/darker_gray" />
-</LinearLayout>
+</RelativeLayout>

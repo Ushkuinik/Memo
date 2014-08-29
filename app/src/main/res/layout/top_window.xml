@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:weightSum="1"
     android:background="#dd001122"
-    android:baselineAligned="false">
+    android:baselineAligned="false"
+    >
 
     <LinearLayout
         android:id="@+id/layoutTitle"
@@ -25,6 +26,38 @@
                 android:src="@drawable/ic_action_remove_holo_dark"
                 android:background="@drawable/image_button" />
 
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnAdd"
+                android:src="@drawable/ic_action_document_add_filled_holo_dark"
+                android:background="@drawable/image_button"
+                android:onClick="onClickAddMemo" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnEdit"
+                android:src="@drawable/ic_action_document_edit_filled_holo_dark"
+                android:background="@drawable/image_button"
+                android:onClick="onClickEditMemo" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnSave"
+                android:src="@drawable/ic_action_document_checked_filled_holo_dark"
+                android:background="@drawable/image_button"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:id="@+id/btnAttachment"
+                android:src="@drawable/ic_action_paperclip_filled_holo_dark"
+                android:background="@drawable/image_button"
+                android:visibility="gone" />
+
             <!--ImageButton
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -40,6 +73,7 @@
                 android:src="@drawable/ic_action_camera_holo_dark"
                 android:background="@drawable/image_button" /-->
 
+            <!--
             <ImageButton
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -55,9 +89,10 @@
                 android:src="@drawable/ic_action_save_holo_dark"
                 android:background="@drawable/image_button"
                 android:visibility="gone" />
+            -->
 
         </LinearLayout>
-
+<!--
         <ImageButton
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -66,6 +101,7 @@
             android:background="@drawable/image_button"
             android:layout_gravity="right"
             android:baselineAlignBottom="false"/>
+-->
 
         <ImageButton
             android:layout_width="48dp"
@@ -81,7 +117,12 @@
         android:layout_height="100dp"
         android:id="@+id/hsvMemos">
 
-<!--
+    </company.memo.HorizontalListView>
+    <!--
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -137,10 +178,10 @@
                 android:minWidth="100dp"
                 android:layout_gravity="right"/>
         </LinearLayout>
+    </HorizontalScrollView>
 -->
-    </company.memo.HorizontalListView>
 
-    <view
+<view
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/body"
         android:layout_width="match_parent"

@@ -10,10 +10,13 @@ import java.util.TimeZone;
  *
  */
 public class Memo {
-    private long mId;
+    private long   mId;
     private String mNumber;
     private String mBody;
-    private Date mDate = null;
+
+
+    private boolean  mSelected = false;
+    private Date     mDate     = null;
     private Calendar mCalendar = Calendar.getInstance();
 
 
@@ -44,12 +47,17 @@ public class Memo {
         return mDate;
     }
 
+
     public String getYear() {
         return mCalendar.get(Calendar.YEAR) + "";
     }
+
+
     public String getDayMonth() {
         return mCalendar.get(Calendar.DAY_OF_MONTH) + " / " + (mCalendar.get(Calendar.MONTH) + 1);
     }
+
+
     public String getTime() {
         return mCalendar.get(Calendar.HOUR_OF_DAY) + ":" + mCalendar.get(Calendar.MINUTE);
     }
@@ -63,4 +71,17 @@ public class Memo {
     public String getNumber() {
         return mNumber;
     }
+
+
+    public boolean isSelected() {
+        return mSelected;
+    }
+
+
+    public void setSelected(boolean _selected) {
+        this.mSelected = _selected;
+//        Log.d("Memo", "Memo[" + mId + "] is set to " + mSelected);
+    }
+
+
 }

@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 /**
@@ -57,10 +58,17 @@ public class AdapterMemoHorizontal extends ArrayAdapter<Memo> {
         }
 
         Memo memo = this.getMemo(position);
-        Log.d(this.LOG_TAG, ": getView: pos: " + position + ", time: " + memo.getTime() + ", body: " + memo.getBody());
+//        Log.d(this.LOG_TAG, ": [" + memo.getId() + "] getView: pos: " + position + ", time: " + memo.getTime() + ", sel: " + memo.isSelected());
+        SimpleDateFormat format = new SimpleDateFormat("d MMM HH:mm");
+        String label = format.format(memo.getDate());
 
-        ((TextView) view.findViewById(R.id.textTimestamp)).setText(memo.getTime());
+        ((TextView) view.findViewById(R.id.textTimestamp)).setText(label);
         ((ImageView) view.findViewById(R.id.imageThumbnail)).setImageResource(R.drawable.ic_sheet);
+        if(memo.isSelected())
+            view.findViewById(R.id.imageOverlay).setVisibility(View.INVISIBLE);
+        else
+            view.findViewById(R.id.imageOverlay).setVisibility(View.VISIBLE);
+
 
         view.setTag(memo.getId());
 

@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -12,6 +14,7 @@ import android.view.ViewConfiguration;
 import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -190,7 +193,8 @@ public class ActivityMemoList extends ActionBarActivity {
 //        mAdapterDatabase.logMemos();
 
         ArrayList<Memo> memos = mAdapterDatabase.getMemos(number);
-        mAdapterMemo = new AdapterMemo(this, memos, mTouchListener);
+//        mAdapterMemo = new AdapterMemo(this, memos, mTouchListener);
+        mAdapterMemo = new AdapterMemo(this, memos, null);
 
         mMemoView = (ListView) findViewById(R.id.listView);
         mMemoView.setAdapter(mAdapterMemo);
@@ -199,9 +203,15 @@ public class ActivityMemoList extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Log.d(LOG_TAG, "Click detected, position: " + position + " id:" + id + " tag: " + view.getTag().toString());
+
+                long memo_id = ((Long) view.getTag()).longValue();
+                Intent intent = new Intent(getBaseContext(), ActivityEditMemo.class);
+                intent.putExtra("memoId", memo_id);
+                startActivity(intent);
             }
         });
 
+        registerForContextMenu(mMemoView);
         mMemoView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id) {
@@ -240,6 +250,70 @@ public class ActivityMemoList extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    /**
+     * Called when a context menu for the {@code view} is about to be shown.
+     * Unlike {@link #onCreateOptionsMenu(android.view.Menu)}, this will be called every
+     * time the context menu is about to be shown and should be populated for
+     * the view (or item inside the view for {@link android.widget.AdapterView} subclasses,
+     * this can be found in the {@code menuInfo})).
+     * <p/>
+     * Use {@link #onContextItemSelected(android.view.MenuItem)} to know when an
+     * item has been selected.
+     * <p/>
+     * It is not safe to hold onto the context menu after this method returns.
+     *
+     * @param menu
+     * @param v
+     * @param menuInfo
+     */
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.context_menu_memo, menu);
+    }
+
+
+    /**
+     * This hook is called whenever an item in a context menu is selected. The
+     * default implementation simply returns false to have the normal processing
+     * happen (calling the item's Runnable or sending a message to its Handler
+     * as appropriate). You can use this method for any items for which you
+     * would like to do processing without those other facilities.
+     * <p/>
+     * Use {@link android.view.MenuItem#getMenuInfo()} to get extra information set by the
+     * View that added this menu item.
+     * <p/>
+     * Derived classes should call through to the base class for it to perform
+     * the default menu handling.
+     *
+     * @param item The context menu item that was selected.
+     * @return boolean Return false to allow normal context menu processing to
+     * proceed, true to consume it here.
+     */
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()) {
+            case R.id.action_delete:
+                Log.d(LOG_TAG, "Delete item, " + " id: " + info.id);// + " tag: " + view.getTag().toString());
+                int position = (int)info.id;
+                Memo memo = (Memo)mMemoView.getItemAtPosition(position);
+//                long memo_id = memo.getId();
+//                Log.d(LOG_TAG, "Delete item, " + " id: " + memo_id);// + " tag: " + view.getTag().toString());
+//                Memo m = mAdapterMemo.getMemo(position);
+//                Log.d(LOG_TAG, "Delete item, " + " id: " + m.getId());// + " tag: " + view.getTag().toString());
+                Toast.makeText(this, "Deleted item: " + memo.getId(), Toast.LENGTH_SHORT).show();
+                mAdapterDatabase.deleteMemo(memo.getId());
+                mAdapterMemo.remove(memo);
+
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
     }
 
 

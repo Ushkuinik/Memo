@@ -79,11 +79,11 @@ public class CallDetectService extends Service {
                     Log.d(LOG_TAG, "[CALL_STATE_RINGING]");
                     StandOutWindow.closeAll(context, TopWindow.class);
                     StandOutWindow.show(context, TopWindow.class, StandOutWindow.DEFAULT_ID);
-/*
+
                     Bundle bundle = new Bundle();
                     bundle.putString("phoneNumber", incomingNumber);
                     StandOutWindow.sendData(context, TopWindow.class, StandOutWindow.DEFAULT_ID, GOT_PHONE_NUMBER, bundle, null, 0);
-*/
+
                     break;
 
                 case TelephonyManager.CALL_STATE_IDLE:

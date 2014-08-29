@@ -8,9 +8,16 @@
         android:title="@string/action_window"
         app:showAsAction="always" />
 
+    <item android:id="@+id/action_power"
+        android:icon="@drawable/ic_action_power_holo_light"
+        android:title="@string/action_power"
+        android:checkable="true"
+        app:showAsAction="collapseActionView" />
+
     <item android:id="@+id/action_settings"
         android:icon="@drawable/ic_action_overflow_holo_light"
         android:title="@string/action_settings"
+        android:visible="false"
         app:showAsAction="always" />
 
 </menu>

@@ -38,6 +38,7 @@ package company.memo;
         import android.view.GestureDetector.OnGestureListener;
         import android.view.MotionEvent;
         import android.view.View;
+        import android.view.ViewTreeObserver;
         import android.widget.AdapterView;
         import android.widget.ListAdapter;
         import android.widget.Scroller;
@@ -64,6 +65,8 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
         super(context, attrs);
         initView();
     }
+
+
 
     private synchronized void initView() {
         mLeftViewIndex = -1;
@@ -348,11 +351,6 @@ public class HorizontalListView extends AdapterView<ListAdapter> {
             }
             return true;
         }
-
-
-
     };
-
-
 
 }

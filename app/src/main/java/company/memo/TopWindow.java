@@ -4,15 +4,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ImageSpan;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -21,6 +27,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -53,56 +61,59 @@ public class TopWindow extends StandOutWindow {
 
     private final String LOG_TAG = this.getClass().toString();
 
-    public enum SizeState {
-        SIZE_STATE_HIDDEN,      // hidden to notification area
-        SIZE_STATE_MINIMIZED,   // only toolbar is visible
-        SIZE_STATE_NORMAL       // expanded to normal size (toolbar + memo area)
+    public enum WindowState {
+        STATE_NO_MEMO,
+        STATE_MEMO_NO_SELECT,
+        STATE_HIDDEN, STATE_MEMO_SELECTED
     }
 
 
+    // Window part's sizes in dp
+    final int TITLE_HEIGHT = 52;
+    final int MEMO_LIST_HEIGHT_FULL = 100;
+    final int MEMO_LIST_HEIGHT_MIN  = 40;
+    final int WINDOW_WIDTH_MIN = 96;
+    final int WINDOW_WIDTH_NORMAL = 250;
+    final int WINDOW_HEIGHT_LIST = TITLE_HEIGHT + MEMO_LIST_HEIGHT_FULL;
+    final int WINDOW_HEIGHT_VIEW = TITLE_HEIGHT + MEMO_LIST_HEIGHT_MIN + 250;
 
     private View mView = null;
-    private int             mWindowId;    // window mWindowId
-    private SizeState       mSizeState;
-    private AdapterDatabase mAdapterDatabase;
+    private int                   mWindowId;    // window mWindowId
+    private WindowState           mWindowState;
+    private AdapterDatabase       mAdapterDatabase;
     private AdapterMemoHorizontal mAdapterMemo;
-    private String          mPhoneNumber;
+    private HorizontalListView    mListMemos;
+    private String                mPhoneNumber;
     private long mMemoId = 0;
+    private LineEditText mMemoText;
+    private Memo         mPrevMemo;
+    private float        mDensity;
 
-    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-    private Uri fileUri;
+//    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+//    private Uri fileUri;
 
 
     private Point getWindowSize() {
-        Log.d(this.LOG_TAG, "getWindowSize");
-        int w = 100, h = 100;
-        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        DisplayMetrics dm = new DisplayMetrics();
-        display.getMetrics(dm);
+//        Log.d(this.LOG_TAG, "getWindowSize");
+        int w = 0, h = 0;
 //        Point p = new Point(dm.widthPixels, dm.heightPixels / 2);
-        switch(mSizeState) {
-            case SIZE_STATE_HIDDEN:
+        switch(mWindowState) {
+            case STATE_HIDDEN:
+                hide(mWindowId);
                 break;
-            case SIZE_STATE_MINIMIZED:
-                if(mPhoneNumber != null) {
-                    if(mAdapterMemo.getCount() > 0) {
-                        w = (int) Math.ceil(250 * dm.density);
-                        h = (int) Math.ceil(152 * dm.density);
-                    }
-                    else {
-                        w = (int) Math.ceil(96 * dm.density);
-                        h = (int) Math.ceil(48 * dm.density);
-                    }
-                }
-                else {
-                    w = (int) Math.ceil(96 * dm.density);
-                    h = (int) Math.ceil(48 * dm.density);
-                }
+            case STATE_MEMO_NO_SELECT:
+                w = Dp2Pixel(WINDOW_WIDTH_NORMAL);
+                h = Dp2Pixel(WINDOW_HEIGHT_LIST);
                 break;
-            case SIZE_STATE_NORMAL:
-                w = (int) Math.ceil(250 * dm.density);
-                h = (int) Math.ceil(300 * dm.density);
+
+            case STATE_MEMO_SELECTED:
+                w = Dp2Pixel(WINDOW_WIDTH_NORMAL);
+                h = Dp2Pixel(WINDOW_HEIGHT_VIEW);
+                break;
+            case STATE_NO_MEMO:
+            default:
+                w = Dp2Pixel(WINDOW_WIDTH_MIN);
+                h = Dp2Pixel(TITLE_HEIGHT);
                 break;
         }
 
@@ -117,7 +128,7 @@ public class TopWindow extends StandOutWindow {
 
         Log.d(this.LOG_TAG, "onCreate");
 
-        mSizeState = SizeState.SIZE_STATE_MINIMIZED;
+        mWindowState = WindowState.STATE_NO_MEMO;
 
         mAdapterDatabase = new AdapterDatabase(this);
         mAdapterDatabase.open();
@@ -138,7 +149,7 @@ public class TopWindow extends StandOutWindow {
     @Override
     public boolean onClose(int id, Window window) {
         Log.d(this.LOG_TAG, "onClose");
-        mSizeState = SizeState.SIZE_STATE_MINIMIZED;
+        mWindowState = WindowState.STATE_NO_MEMO;
         mMemoId = 0;
 
         return super.onClose(id, window);
@@ -159,8 +170,54 @@ public class TopWindow extends StandOutWindow {
     @Override
     public boolean onShow(int id, Window window) {
         Log.d(this.LOG_TAG, "onShow");
-        mSizeState = SizeState.SIZE_STATE_MINIMIZED;
+
+        if(mPhoneNumber != null) {
+
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            final String photoPath = preferences.getString("photoPath", null);
+            String thumbPath = preferences.getString("thumbPath", null);
+            if(photoPath == null) {
+                setState(WindowState.STATE_MEMO_NO_SELECT);
+                Log.d(this.LOG_TAG, "State: STATE_MEMO_NO_SELECT");
+            }
+            else {
+                setState(WindowState.STATE_MEMO_SELECTED);
+                Log.d(this.LOG_TAG, "State: STATE_MEMO_SELECTED");
+
+                mMemoText.insertImage(thumbPath);
+
+                SharedPreferences.Editor editor = preferences.edit();
+                //TODO: declare pref keys as resource strings
+                editor.remove("photoPath");
+                editor.remove("thumbPath");
+                editor.commit();
+            }
+        }
+        else {
+            setState(WindowState.STATE_NO_MEMO);
+            Log.d(this.LOG_TAG, "State: STATE_NO_MEMO");
+        }
+
         return super.onShow(id, window);
+    }
+
+
+    /**
+     * Implement this callback to be alerted when a window corresponding to the
+     * id is about to be hidden. This callback will occur before the view is
+     * removed from the window manager and {@link #getHiddenNotification(int)}
+     * is called.
+     *
+     * @param id     The id of the view, provided as a courtesy.
+     * @param window
+     * @return Return true to cancel the view from being hidden, or false to
+     * continue.
+     * @see #hide(int)
+     */
+    @Override
+    public boolean onHide(int id, Window window) {
+        Log.d(this.LOG_TAG, "onHide");
+        return super.onHide(id, window);
     }
 
 
@@ -200,8 +257,6 @@ public class TopWindow extends StandOutWindow {
 
         Log.d(this.LOG_TAG, "createAndAttachView");
 
-        mSizeState = SizeState.SIZE_STATE_MINIMIZED;
-
         LayoutInflater layoutInflater = LayoutInflater.from(this);
         this.mView = layoutInflater.inflate(R.layout.top_window, frame, true);
         this.mWindowId = id;
@@ -214,7 +269,14 @@ public class TopWindow extends StandOutWindow {
         if(adapter != null)
             adapter.clear();
 */
+        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        DisplayMetrics dm = new DisplayMetrics();
+        display.getMetrics(dm);
+        mDensity = dm.density;
 
+        mListMemos = (HorizontalListView)mView.findViewById(R.id.hsvMemos);
+        mMemoText = (LineEditText)mView.findViewById(R.id.body);
 
         View btnQuit = mView.findViewById(R.id.btnQuit);
         btnQuit.setOnClickListener(new View.OnClickListener() {
@@ -225,22 +287,43 @@ public class TopWindow extends StandOutWindow {
             }
         });
 
-        mView.findViewById(R.id.btnExpand).setOnClickListener(new View.OnClickListener() {
+/*
+        mView.findViewById(R.id.btnAdd).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                setSizeState(SizeState.SIZE_STATE_NORMAL);
+
+                //TODO: hide Window and start ActivityEditMemo
+                if(mPrevMemo != null) {
+//                    setMemoListHeight(MEMO_LIST_HEIGHT_MIN, true);
+
+                    mPrevMemo.setSelected(false);
+                    mAdapterMemo.notifyDataSetChanged();
+                    mMemoId = 0;
+                    mMemoText.setHtmlText("");
+                    Toast.makeText(getApplicationContext(), "New memo selected", Toast.LENGTH_SHORT).show();
+
+                    setState(WindowState.STATE_HIDDEN);
+                }
             }
         });
+*/
 
         mView.findViewById(R.id.btnCollapse).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                setSizeState(SizeState.SIZE_STATE_MINIMIZED);
+                setState(WindowState.STATE_MEMO_NO_SELECT);
+
+                if(mPrevMemo != null) {
+                    mPrevMemo.setSelected(false);
+                    mAdapterMemo.notifyDataSetChanged();
+                }
+
             }
         });
 
+/*
         final ImageButton buttonAttachment = (ImageButton)mView.findViewById(R.id.btnAttachment);
         buttonAttachment.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -256,7 +339,7 @@ public class TopWindow extends StandOutWindow {
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String text = ((EditText)mView.findViewById(R.id.body)).getText().toString();
+                String text = mMemoText.getHtmlText();
                 if(mMemoId == 0)
                     mMemoId = mAdapterDatabase.createMemo(mPhoneNumber, text);
                 else
@@ -264,47 +347,105 @@ public class TopWindow extends StandOutWindow {
                 Toast.makeText(getApplicationContext(), "Save memo: " + mMemoId, Toast.LENGTH_LONG).show();
             }
         });
+*/
 
-        long msTime = System.currentTimeMillis();
-        Date curDateTime = new Date(msTime);
-
-        SimpleDateFormat formatter = new SimpleDateFormat("d'/'M'/'y");
-//        ((EditText)mView.findViewById(R.id.body)).setText(formatter.format(curDateTime));
-        ((EditText)mView.findViewById(R.id.body)).setText("New memo.");
+//        mMemoText.setHint("New memo");
+        //FIXME: Long press allows to past text. It should be disabled
+        mMemoText.setFocusable(false);
+        mMemoText.setClickable(true);
     }
 
 
 
-    private void setSizeState(SizeState _mode) {
-        mSizeState = _mode;
-        switch(mSizeState) {
-            case SIZE_STATE_MINIMIZED:
-                mView.findViewById(R.id.btnExpand).setVisibility(View.VISIBLE);
+    private void setMemoListHeight(int _height, boolean  _isAnimate) {
+        Animation ani = new ShowAnim(mListMemos, Dp2Pixel(_height), new IDataChangeListener() {
+            @Override
+            public void onEvent() {
+                mAdapterMemo.notifyDataSetChanged();
+            }
+        });
+        ani.setDuration(400);
+        mListMemos.startAnimation(ani);
+    }
+
+
+    private void setState(WindowState _mode) {
+        mWindowState = _mode;
+        switch(mWindowState) {
+            case STATE_HIDDEN:
+                Log.d(this.LOG_TAG, "setState: STATE_HIDDEN");
+                break;
+            case STATE_MEMO_NO_SELECT:
+                Log.d(this.LOG_TAG, "setState: STATE_MEMO_NO_SELECT");
+                Log.d(this.LOG_TAG, "MEMO_LIST_HEIGHT_FULL: " + MEMO_LIST_HEIGHT_FULL);
+                setMemoListHeight(MEMO_LIST_HEIGHT_FULL, true);
                 mView.findViewById(R.id.btnCollapse).setVisibility(View.GONE);
-                mView.findViewById(R.id.btnAttachment).setVisibility(View.GONE);
-                mView.findViewById(R.id.btnSave).setVisibility(View.GONE);
+//                mView.findViewById(R.id.btnAttachment).setVisibility(View.GONE);
+                mView.findViewById(R.id.btnEdit).setVisibility(View.GONE);
                 break;
-
-            case SIZE_STATE_NORMAL:
-                mSizeState = SizeState.SIZE_STATE_NORMAL;
-                mView.findViewById(R.id.btnExpand).setVisibility(View.GONE);
+            case STATE_MEMO_SELECTED:
+                Log.d(this.LOG_TAG, "setState: STATE_MEMO_SELECTED");
+                Log.d(this.LOG_TAG, "MEMO_LIST_HEIGHT_MIN: " + MEMO_LIST_HEIGHT_MIN);
+                setMemoListHeight(MEMO_LIST_HEIGHT_MIN, true);
                 mView.findViewById(R.id.btnCollapse).setVisibility(View.VISIBLE);
-                mView.findViewById(R.id.btnAttachment).setVisibility(View.VISIBLE);
-                mView.findViewById(R.id.btnSave).setVisibility(View.VISIBLE);
-                resizeWindow();
+//                mView.findViewById(R.id.btnAttachment).setVisibility(View.VISIBLE);
+                mView.findViewById(R.id.btnEdit).setVisibility(View.VISIBLE);
                 break;
-
+            case STATE_NO_MEMO:
+                Log.d(this.LOG_TAG, "setState: STATE_NO_MEMO");
             default:
+                mView.findViewById(R.id.btnCollapse).setVisibility(View.GONE);
+//                mView.findViewById(R.id.btnAttachment).setVisibility(View.GONE);
+                mView.findViewById(R.id.btnSave).setVisibility(View.GONE);
+
+/*
+                if(mPhoneNumber != null) {
+                    if(mAdapterMemo.getCount() > 0) {
+                        w = Dp2Pixel(250);
+                        h = Dp2Pixel(152);
+                    }
+                    else {
+                        w = Dp2Pixel(96);
+                        h = Dp2Pixel(48);
+                    }
+                }
+                else {
+                    w = Dp2Pixel(96);
+                    h = Dp2Pixel(48);
+                }
+*/
                 break;
         }
         resizeWindow();
+
+//        switch(mWindowState) {
+//            case STATE_NO_MEMO:
+//                mView.findViewById(R.id.btnExpand).setVisibility(View.VISIBLE);
+//                mView.findViewById(R.id.btnCollapse).setVisibility(View.GONE);
+//                mView.findViewById(R.id.btnAttachment).setVisibility(View.GONE);
+//                mView.findViewById(R.id.btnSave).setVisibility(View.GONE);
+//                break;
+
+//            case STATE_MEMO_NO_SELECT:
+//                mView.findViewById(R.id.btnExpand).setVisibility(View.GONE);
+//                mView.findViewById(R.id.btnCollapse).setVisibility(View.VISIBLE);
+//                mView.findViewById(R.id.btnAttachment).setVisibility(View.VISIBLE);
+//                mView.findViewById(R.id.btnSave).setVisibility(View.VISIBLE);
+//                break;
+
+//            default:
+//                break;
+//        }
     }
 
     private void resizeWindow() {
 
         Window window = getWindow(mWindowId);
-        Point p = getWindowSize();
-        window.edit().setSize(p.x, p.y).commit();
+        if(window != null) {
+            Point p = getWindowSize();
+            window.edit().setSize(p.x, p.y).commit();
+        }
+
     }
 
 
@@ -342,12 +483,8 @@ public class TopWindow extends StandOutWindow {
                 | StandOutFlags.FLAG_DECORATION_MOVE_DISABLE
                 | StandOutFlags.FLAG_WINDOW_HIDE_ENABLE
                 | StandOutFlags.FLAG_BODY_MOVE_ENABLE
-//                | StandOutFlags.FLAG_WINDOW_BRING_TO_FRONT_ON_TOUCH
-//                | StandOutFlags.FLAG_WINDOW_BRING_TO_FRONT_ON_TAP
-//                | StandOutFlags.FLAG_WINDOW_EDGE_LIMITS_ENABLE // StandOutWindow incorrectly checks screen boundaries after phone rotated
                 | StandOutFlags.FLAG_FIX_COMPATIBILITY_ALL_DISABLE
                 | StandOutFlags.FLAG_ADD_FUNCTIONALITY_ALL_DISABLE
-//                | StandOutFlags.FLAG_ADD_FUNCTIONALITY_RESIZE_DISABLE
                 | StandOutFlags.FLAG_ADD_FUNCTIONALITY_DROP_DOWN_DISABLE;
 
         flags &= ~StandOutFlags.FLAG_DECORATION_SYSTEM; // switch off DECORATION_SYSTEM to disable window title
@@ -403,31 +540,45 @@ public class TopWindow extends StandOutWindow {
                 mPhoneNumber = data.getString("phoneNumber");
                 mPhoneNumber = mPhoneNumber.replace("-", "");
                 Log.d(this.LOG_TAG, "onReceiveData(phoneNumber = " + mPhoneNumber + ")");
-                //((LineEditText)(view.findViewById(R.mWindowId.body))).setText(number);
+                //mMemoText.setText(number);
                 /**
                  * Populate horizontal list
                  */
                 ArrayList<Memo> memos = mAdapterDatabase.getMemos(mPhoneNumber);
                 mAdapterMemo = new AdapterMemoHorizontal(this, memos);
-                HorizontalListView listMemos = (HorizontalListView)mView.findViewById(R.id.hsvMemos);
-                listMemos.setAdapter(mAdapterMemo);
-                listMemos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                mListMemos.setAdapter(mAdapterMemo);
+                mListMemos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+//                        setMemoListHeight(MEMO_LIST_HEIGHT_FULL, true);
+
                         String s = "Click: " + view.getTag().toString();
                         Toast.makeText(TopWindow.this, s, Toast.LENGTH_SHORT).show();
                         Log.d(LOG_TAG, s);
 
-                        long memo_id = ((Long) view.getTag()).longValue();
-                        Memo memo = mAdapterDatabase.getMemo(memo_id);
+                        Memo memo = mAdapterMemo.getItem(position);
                         String text = memo.getBody();
                         mMemoId = memo.getId();
-                        ((EditText)mView.findViewById(R.id.body)).setText(text);
+                        mMemoText.setHtmlText(text);
+                        mMemoText.setHint("Enter memo (update)");
 
-                        setSizeState(SizeState.SIZE_STATE_NORMAL);
+                        if(mPrevMemo != null)
+                            mPrevMemo.setSelected(false);
+                        memo.setSelected(true);
+                        mPrevMemo = memo;
+
+                        mAdapterMemo.notifyDataSetChanged();
+
+/*
+                        ViewGroup.LayoutParams params = listMemos.getLayoutParams();
+                        params.height = 120;
+                        listMemos.setLayoutParams(params);
+*/
+                        setState(WindowState.STATE_MEMO_SELECTED);
                     }
                 });
-                listMemos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                mListMemos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                     @Override
                     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                         String s = "Long click: " + view.getTag().toString();
@@ -437,7 +588,10 @@ public class TopWindow extends StandOutWindow {
                     }
                 });
 
-                resizeWindow();
+                if(mAdapterMemo.getCount() > 0)
+                    setState(WindowState.STATE_MEMO_NO_SELECT);
+                else
+                    setState(WindowState.STATE_NO_MEMO);
 
                 break;
 
@@ -459,8 +613,11 @@ public class TopWindow extends StandOutWindow {
 
 
     public static class LineEditText extends EditText {
-        private Rect  mRect;
-        private Paint mPaint;
+        private Rect   mRect;
+        private Paint  mPaint;
+        private String mHtmlText = "";
+        private SpannableStringBuilder ssb;
+        Context mContext;
 
 
         // we need this constructor for LayoutInflater
@@ -470,12 +627,14 @@ public class TopWindow extends StandOutWindow {
             mPaint = new Paint();
             mPaint.setStyle(Paint.Style.FILL_AND_STROKE);
             mPaint.setColor(Color.LTGRAY);
+            mContext = context;
         }
 
 
         @Override
         protected void onDraw(Canvas canvas) {
 
+/*
             int height = getHeight();
             int line_height = getLineHeight();
 
@@ -496,9 +655,97 @@ public class TopWindow extends StandOutWindow {
 
                 super.onDraw(canvas);
             }
+*/
+            super.onDraw(canvas);
         }
 
 
+        public void setHtmlText(String _htmlText) {
+//            Log.d("TopWindow", "setHtmlText() html text: " + _htmlText);
+            mHtmlText = _htmlText;
+            ThumbImageGetter getter = new ThumbImageGetter();
+            Spanned htmlSpan = Html.fromHtml(_htmlText, getter, null);
+            this.setText(htmlSpan);
+        }
+
+        public String getHtmlText() {
+            mHtmlText = Html.toHtml(this.getText());
+//            Log.d("TopWindow", "getHtmlText() html text: " + mHtmlText);
+            return mHtmlText;
+        }
+
+
+        public void insertImage(String _path) {
+            //Uri uri = Uri.fromFile(new File(_path));
+            Drawable d = Drawable.createFromPath(_path);
+            ImageSpan imageSpan = new ImageSpan(d, _path);
+
+            SpannableStringBuilder builder = new SpannableStringBuilder();
+            builder.append(this.getText());
+
+            final int OBJ_CHAR_CODE = 0xFFFC;
+            String imgId = String.format("%c", OBJ_CHAR_CODE);
+            int selection_start = this.getSelectionStart();
+            int selection_end = this.getSelectionEnd();
+            builder.replace(this.getSelectionStart(), this.getSelectionEnd(), imgId);
+
+            builder.setSpan(imageSpan, selection_start, selection_start + imgId.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            int extra = 0;
+            if(selection_start != 0) {
+                // add '\n' before image
+                builder.replace(selection_start, selection_start, "\n");
+//                Log.d("TopWindow", "Added before NL at " + selection_start);
+                extra++;
+            }
+            Log.d("TopWindow", "length: " + this.getText().toString().length() + " selection: " + selection_start);
+
+            if(selection_end < this.getText().toString().length()) {
+                // add '\n' after image
+                int after = selection_start + imgId.length() + extra;
+                builder.replace(after, after, "\n");
+//                Log.d("TopWindow", "Added after NL  " + mHtmlText);
+            }
+
+//            this.setText(builder);
+            mHtmlText = Html.toHtml(builder);
+            this.setHtmlText(mHtmlText);
+
+/*
+//            String src = "<img src=\"" + _path + "\" />";
+//            Editable htmlSpan = this.getText();
+            builder.setSpan();
+            String s = htmlSpan.toString();
+            Editable htmlSpan2 = htmlSpan.insert(this.getSelectionStart(), src, 0, src.length());
+            Editable htmlSpan2 = htmlSpan.insert(this.getSelectionStart(), src, 0, src.length());
+            mHtmlText = Html.toHtml(htmlSpan);
+            int selection_start = this.getSelectionStart();
+            int selection_end = this.getSelectionEnd();
+            //CharSequence part1 = htmlSpan.subSequence(0, selection_start);
+            Spanned spans[] = htmlSpan.getSpans(0, htmlSpan.length(), Spanned.class);
+            CharSequence part2 = htmlSpan.subSequence(selection_end, htmlSpan.length());
+            //mHtmlText = part1 + src + part2;
+            this.setHtmlText(mHtmlText);
+*/
+
+//            ssb = new SpannableStringBuilder();
+//            ssb.replace(this.getSelectionStart(), this.getSelectionStart(), src, 0, src.length() - 1);
+        }
+
+
+        public class ThumbImageGetter implements Html.ImageGetter {
+
+            public Drawable getDrawable(String source) {
+                Bitmap bitmap = BitmapFactory.decodeFile(source);
+                Drawable d = Drawable.createFromPath(source);
+                d.setBounds(0, 0, bitmap.getWidth(), bitmap.getHeight());
+//                Log.d("TopWindow", "w:  " + bitmap.getWidth() + " h: " + bitmap.getHeight());
+//                Rect r = d.getBounds();
+//                Log.d("TopWindow", "rect:  " + r.toString());
+                return d;
+            }
+
+        }
     }
 
 
@@ -510,7 +757,8 @@ public class TopWindow extends StandOutWindow {
             public void run() {
                 Toast.makeText(getApplicationContext(), "New calendar event", Toast.LENGTH_SHORT).show();
             }
-        }));
+        }
+        ));
 
         if(checkCameraHardware(this)) {
             items.add(new DropDownListItem(R.drawable.ic_action_camera_holo_dark,
@@ -518,21 +766,23 @@ public class TopWindow extends StandOutWindow {
                 @Override
                 public void run() {
                     Toast.makeText(getApplicationContext(), "New photo", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(getBaseContext(), ActivityCamera.class);
+                    Intent intent = new Intent(getBaseContext(), ActivityCameraDummy.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     hide(mWindowId);
                     startActivity(intent);
                 }
-            }));
+            }
+            ));
         }
 
         items.add(new DropDownListItem(R.drawable.ic_action_mic_holo_dark,
                                        getResources().getString(R.string.menu_audio), new Runnable() {
-           @Override
+            @Override
             public void run() {
-               Toast.makeText(getApplicationContext(), "New audio record", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "New audio record", Toast.LENGTH_SHORT).show();
             }
-        }));
+        }
+        ));
         return items;
     }
 
@@ -541,9 +791,10 @@ public class TopWindow extends StandOutWindow {
         final List<DropDownListItem> items;
 
         List<DropDownListItem> dropDownListItems = this.getDropDownItems();
-        if (dropDownListItems != null) {
+        if(dropDownListItems != null) {
             items = dropDownListItems;
-        } else {
+        }
+        else {
             items = new ArrayList<StandOutWindow.DropDownListItem>();
         }
 
@@ -555,7 +806,7 @@ public class TopWindow extends StandOutWindow {
                                                      ViewGroup.LayoutParams.WRAP_CONTENT,
                                                      ViewGroup.LayoutParams.WRAP_CONTENT, true);
 
-        for (final DropDownListItem item : items) {
+        for(final DropDownListItem item : items) {
             ViewGroup listItem = (ViewGroup) mView.inflate(this, R.layout.list_item_drop_down, null);
             list.addView(listItem);
 
@@ -581,14 +832,77 @@ public class TopWindow extends StandOutWindow {
         return dropDown;
     }
 
+
     /** Check if this device has a camera */
     private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
+        if(context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
             // this device has a camera
             return true;
-        } else {
+        }
+        else {
             // no camera on this device
             return false;
         }
     }
+    public class ShowAnim extends Animation {
+        int targetHeight;
+        int initialHeight;
+        View view;
+        protected IDataChangeListener mDataChangeListener;
+
+        public ShowAnim(View view, int targetHeight, IDataChangeListener _listener) {
+            this.view = view;
+            this.targetHeight = targetHeight;
+            mDataChangeListener = _listener;
+        }
+
+        @Override
+        protected void applyTransformation(float interpolatedTime, Transformation t) {
+            //view.getLayoutParams().height = (int) (targetHeight * interpolatedTime);
+            float k = (targetHeight - initialHeight);
+            view.getLayoutParams().height = (int) (k * interpolatedTime + initialHeight);
+//            view.requestLayout();
+            mDataChangeListener.onEvent();
+//            Log.d("Animation", "height: " + view.getLayoutParams().height + " t: " + interpolatedTime);
+        }
+
+        @Override
+        public void initialize(int width, int height, int parentWidth,
+                               int parentHeight) {
+            super.initialize(width, height, parentWidth, parentHeight);
+            initialHeight = height;
+        }
+
+        @Override
+        public boolean willChangeBounds() {
+            return true;
+        }
+    }
+
+    public void onClickAddMemo(View view) {
+        Intent intent = new Intent(getBaseContext(), ActivityEditMemo.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("phoneNumber", mPhoneNumber);
+        startActivity(intent);
+        close(mWindowId);
+    }
+
+    public void onClickEditMemo(View view) {
+        Intent intent = new Intent(getBaseContext(), ActivityEditMemo.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("memoId", mMemoId);
+        startActivity(intent);
+        close(mWindowId);
+    }
+
+
+    public interface IDataChangeListener
+    {
+        public void onEvent();
+    }
+
+    public int Dp2Pixel(int _dp) {
+        return Math.round(_dp * mDensity);
+    }
 }
+
