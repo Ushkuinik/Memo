@@ -12,17 +12,17 @@ import java.util.TimeZone;
 public class Memo {
     private long   mId;
     private String mNumber;
+    private String mTitle;
     private String mBody;
-
-
     private boolean  mSelected = false;
     private Date     mDate     = null;
     private Calendar mCalendar = Calendar.getInstance();
 
 
-    Memo(long _id, String _number, String _body, String _timestamp) {
+    Memo(long _id, String _number, String _title, String _body, String _timestamp) {
         this.mId = _id;
         this.mNumber = _number;
+        this.mTitle = _title;
         this.mBody = _body;
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -65,6 +65,21 @@ public class Memo {
 
     public String getBody() {
         return mBody;
+    }
+
+
+    public void setBody(String _body) {
+        this.mBody = _body;
+    }
+
+
+    public String getTitle() {
+        return mTitle;
+    }
+
+
+    public void setTitle(String _title) {
+        this.mTitle = _title;
     }
 
 

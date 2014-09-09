@@ -15,19 +15,32 @@ import java.util.ArrayList;
  */
 public class AdapterDatabase {
 
-    public static final  String KEY_ID           = "id";
-    public static final  String KEY_NUMBER       = "number";
-    public static final  String KEY_DATE         = "date";
-    public static final  String KEY_BODY         = "body";
-    private static final String DATABASE_NAME    = "memo_db";
-    private static final String DATABASE_TABLE   = "memo";
-    private static final String DATABASE_CREATE  =
-            "CREATE TABLE " + DATABASE_TABLE + " ("
+    public static final  String KEY_ID          = "id";
+    public static final  String KEY_NUMBER      = "number";
+    public static final  String KEY_DATE        = "date";
+    public static final  String KEY_TITLE       = "title";
+    public static final  String KEY_BODY        = "body";
+    public static final  String KEY_TYPE        = "type";
+    public static final  String KEY_MEMO_ID     = "memo_id";
+    public static final  String KEY_PATH        = "path";
+    private static final String DATABASE_NAME   = "memo_db";
+    private static final String DATABASE_TABLE1 = "memo";
+    private static final String TABLE_CREATE1   =
+            "CREATE TABLE " + DATABASE_TABLE1 + " ("
                     + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + KEY_NUMBER + " TEXT NOT NULL, "
                     + KEY_DATE + " DATETIME DEFAULT CURRENT_TIMESTAMP, "
+                    + KEY_TITLE + " TEXT NOT NULL, "
                     + KEY_BODY + " TEXT NOT NULL);";
-    private static final int    DATABASE_VERSION = 1;
+    private static final String DATABASE_TABLE2 = "attachment";
+    private static final String TABLE_CREATE2   =
+            "CREATE TABLE " + DATABASE_TABLE2 + " ("
+                    + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + KEY_TYPE + " INTEGER, "
+                    + KEY_MEMO_ID + " INTEGER, "
+                    + KEY_PATH + " TEXT NOT NULL);";
+
+    private static final int    DATABASE_VERSION = 4;
     private final        String LOG_TAG          = this.getClass().toString();
     private final Context        mContext;
     private       DatabaseHelper m_dbHelper;
@@ -51,29 +64,31 @@ public class AdapterDatabase {
     }
 
 
-    public long createMemo(String _number, String _body) {
+    public long createMemo(String _number, String _title, String _body) {
+        Log.d(this.LOG_TAG, "createMemo");
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_NUMBER, _number);
+        initialValues.put(KEY_TITLE, _title);
         initialValues.put(KEY_BODY, _body);
 
-        return m_db.insert(DATABASE_TABLE, null, initialValues);
+        return m_db.insert(DATABASE_TABLE1, null, initialValues);
     }
 
 
     public boolean deleteMemo(long _id) {
-        return m_db.delete(DATABASE_TABLE, KEY_ID + "=" + _id, null) > 0;
+        return m_db.delete(DATABASE_TABLE1, KEY_ID + "=" + _id, null) > 0;
     }
 
 
     public Cursor fetchAllMemos() {
-        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_BODY};
-        return m_db.query(DATABASE_TABLE, columns, null, null, null, null, null);
+        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_TITLE, KEY_BODY};
+        return m_db.query(DATABASE_TABLE1, columns, null, null, null, null, null);
     }
 
 
     public ArrayList<Contact> selectContacts() {
         String[] columns = new String[] {KEY_NUMBER, "COUNT(*) AS count"};
-        Cursor cursor = m_db.query(DATABASE_TABLE, columns, null, null, KEY_NUMBER, null, null);
+        Cursor cursor = m_db.query(DATABASE_TABLE1, columns, null, null, KEY_NUMBER, null, null);
 
         ArrayList<Contact> contacts = new ArrayList<Contact>();
 
@@ -90,10 +105,25 @@ public class AdapterDatabase {
     }
 
 
+/*
+    public void syncMemoCount(Contact _contact) {
+        String number = _contact.getIncomingNumber();
+        String[] columns = new String[] {KEY_NUMBER, "COUNT(*) AS count"};
+        String selection = KEY_NUMBER + "=?";
+        String[] selectionArgs = {number};
+        Cursor cursor = m_db.query(DATABASE_TABLE1, columns, selection, selectionArgs, null, null, null);
+        if(cursor != null) {
+
+        }
+
+    }
+*/
+
+
     public Cursor fetchMemo(long _id) throws SQLException {
-        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_BODY};
+        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_TITLE, KEY_DATE, KEY_BODY};
         String selection = KEY_ID + "=" + _id;
-        Cursor mCursor = m_db.query(DATABASE_TABLE, columns, selection, null, null, null, null);
+        Cursor mCursor = m_db.query(DATABASE_TABLE1, columns, selection, null, null, null, null);
 
         if(mCursor != null) {
             mCursor.moveToFirst();
@@ -108,10 +138,10 @@ public class AdapterDatabase {
         if(_number == null) {
             return null;
         }
-        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_BODY};
+        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_TITLE, KEY_BODY};
         String selection = KEY_NUMBER + "=?";
         String[] selectionArgs = {_number};
-        Cursor cursor = m_db.query(DATABASE_TABLE, columns, selection, selectionArgs, null, null, null);
+        Cursor cursor = m_db.query(DATABASE_TABLE1, columns, selection, selectionArgs, null, null, null);
 
         ArrayList<Memo> memos = new ArrayList<Memo>();
 
@@ -120,9 +150,10 @@ public class AdapterDatabase {
         if(cursor != null) {
             while(cursor.moveToNext()) {
                 String id = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_ID));
+                String title = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_TITLE));
                 String body = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_BODY));
                 String timestamp = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_DATE));
-                Memo newMemo = new Memo(Long.parseLong(id), _number, body, timestamp);
+                Memo newMemo = new Memo(Long.parseLong(id), _number, title, body, timestamp);
                 memos.add(newMemo);
             }
         }
@@ -131,29 +162,31 @@ public class AdapterDatabase {
 
 
     public void logMemos() throws SQLException {
-        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_BODY};
-        Cursor cursor = m_db.query(true, DATABASE_TABLE, columns, null, null, null, null, null, null);
+        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_TITLE, KEY_BODY};
+        Cursor cursor = m_db.query(true, DATABASE_TABLE1, columns, null, null, null, null, null, null);
 
         if(cursor != null) {
             while(cursor.moveToNext()) {
                 String id = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_ID));
                 String number = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_NUMBER));
+                String title = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_TITLE));
                 String body = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_BODY));
                 String timestamp = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_DATE));
 
-                Log.d(this.LOG_TAG, "id: " + id + " number: " + number + " body: " + body + " time: " + timestamp);
+                Log.d(this.LOG_TAG, "id: " + id + " number: " + number + " title: " + title + " body: " + body + " time: " + timestamp);
             }
         }
     }
 
 
-    public boolean updateMemo(long _id, String _number, String _body) {
+    public boolean updateMemo(long _id, String _number, String _title, String _body) {
         ContentValues args = new ContentValues();
         args.put(KEY_NUMBER, _number);
+        args.put(KEY_TITLE, _title);
         args.put(KEY_BODY, _body);
         String selection = KEY_ID + "=" + _id;
 
-        return m_db.update(DATABASE_TABLE, args, selection, null) > 0;
+        return m_db.update(DATABASE_TABLE1, args, selection, null) > 0;
     }
 
 
@@ -164,12 +197,58 @@ public class AdapterDatabase {
 
         if(cursor != null) {
             String number = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_NUMBER));
+            String title = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_TITLE));
             String body = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_BODY));
             String timestamp = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_DATE));
-            memo = new Memo(_id, number, body, timestamp);
+            memo = new Memo(_id, number, title, body, timestamp);
         }
 
         return memo;
+    }
+
+
+    public ArrayList<Attachment> getAttachmentByMemoId(long _id) throws SQLException {
+//        Log.d(this.LOG_TAG, "getAttachmentByMemoId: " + _id);
+
+        if(_id == 0) {
+            return null;
+        }
+        String[] columns = new String[] {KEY_ID, KEY_TYPE, KEY_MEMO_ID, KEY_PATH};
+        String selection = KEY_MEMO_ID + "=?";
+        String[] selectionArgs = {String.valueOf(_id)};
+        Cursor cursor = m_db.query(DATABASE_TABLE2, columns, selection, selectionArgs, null, null, null);
+
+        ArrayList<Attachment> attachments = new ArrayList<Attachment>();
+
+//        Log.d(this.LOG_TAG, "getAttachmentByMemoId found " + cursor.getCount() + " attachments for memo: " + _id);
+
+        if(cursor != null) {
+            while(cursor.moveToNext()) {
+                String id = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_ID));
+                String type = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_TYPE));
+                String path = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_PATH));
+                Attachment newAttachment = new Attachment(Long.parseLong(id), Integer.parseInt(type), _id, path);
+                attachments.add(newAttachment);
+            }
+        }
+        return attachments;
+    }
+
+
+    public long createAttachment(int _type, long _memo_id, String _path) {
+        Log.d(this.LOG_TAG, "createAttachment");
+        ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_TYPE, _type);
+        initialValues.put(KEY_MEMO_ID, _memo_id);
+        initialValues.put(KEY_PATH, _path);
+
+        return m_db.insert(DATABASE_TABLE2, null, initialValues);
+    }
+
+
+    public boolean deleteAttachment(long _id) {
+        Log.d(this.LOG_TAG, "deleteAttachment");
+        return m_db.delete(DATABASE_TABLE2, KEY_ID + "=" + _id, null) > 0;
     }
 
 
@@ -186,7 +265,8 @@ public class AdapterDatabase {
         @Override
         public void onCreate(SQLiteDatabase db) {
 
-            db.execSQL(DATABASE_CREATE);
+            db.execSQL(TABLE_CREATE1);
+            db.execSQL(TABLE_CREATE2);
         }
 
 
@@ -194,7 +274,8 @@ public class AdapterDatabase {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.w(LOG_TAG, "Upgrading database from version " + oldVersion + " to "
                     + newVersion + ", which will destroy all old data");
-            db.execSQL("DROP TABLE IF EXISTS notes");
+            db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE1);
+            db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE2);
             onCreate(db);
         }
     }

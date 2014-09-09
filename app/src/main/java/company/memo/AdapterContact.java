@@ -1,10 +1,22 @@
 package company.memo;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -62,15 +74,29 @@ public class AdapterContact extends ArrayAdapter<Contact> {
 
         view.setTag(contact.getIncomingNumber());
 
-        ((TextView) view.findViewById(R.id.name)).setText(contact.getName());
+        String name = contact.getName();
+        if(name == null)
+            name = mContext.getString(R.string.unknown_contact) + " (" + contact.getIncomingNumber() + ")";
+        ((TextView) view.findViewById(R.id.name)).setText(name);
 
         ((TextView) view.findViewById(R.id.count)).setText(Integer.toString(contact.getMemoCount()));
 
+        Bitmap bm = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_note_stroke2).copy(Bitmap.Config.ARGB_8888, true);
+
+        String text = Integer.toString(contact.getMemoCount());
+        Paint paint = new Paint();
+        paint.setColor(Color.parseColor("#888888"));
+        paint.setTextSize(DP2Pixel(14.0f));
+        Rect bounds = new Rect();
+        paint.getTextBounds(text, 0, text.length(), bounds);
+
+        Canvas canvas = new Canvas(bm);
+        canvas.drawText(text, (bm.getWidth() - bounds.width())/ 2, (bm.getHeight() + bounds.height()) / 2, paint);
+
+        ((ImageView) view.findViewById(R.id.memos)).setImageBitmap(bm);
+
         if(contact.getPhotoUri() != null) {
             ((ImageView) view.findViewById(R.id.photo)).setImageURI(contact.getPhotoUri());
-        }
-        else {
-//            ((ImageView) view.findViewById(R.id.photo)).setImageResource(R.drawable.ic_contact_picture_2);
         }
 
         return view;
@@ -79,6 +105,13 @@ public class AdapterContact extends ArrayAdapter<Contact> {
 
     Contact getContact(final int position) {
         return (this.getItem(position));
+    }
+
+    private float DP2Pixel(float _dp) {
+        WindowManager wm = (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics metrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(metrics);
+        return _dp * metrics.density;
     }
 }
 

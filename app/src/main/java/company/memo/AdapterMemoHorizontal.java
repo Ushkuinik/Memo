@@ -63,6 +63,10 @@ public class AdapterMemoHorizontal extends ArrayAdapter<Memo> {
         String label = format.format(memo.getDate());
 
         ((TextView) view.findViewById(R.id.textTimestamp)).setText(label);
+        if(memo.getTitle().isEmpty())
+            ((TextView) view.findViewById(R.id.textTitle)).setText(R.string.memo_title_empty);
+        else
+            ((TextView) view.findViewById(R.id.textTitle)).setText(memo.getTitle());
         ((ImageView) view.findViewById(R.id.imageThumbnail)).setImageResource(R.drawable.ic_sheet);
         if(memo.isSelected())
             view.findViewById(R.id.imageOverlay).setVisibility(View.INVISIBLE);

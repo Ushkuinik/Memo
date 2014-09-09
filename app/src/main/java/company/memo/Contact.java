@@ -1,16 +1,12 @@
 package company.memo;
 
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.Log;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -120,8 +116,9 @@ public class Contact {
 
                 this.mId = Long.parseLong(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup._ID)));
                 this.mName = cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
-                if((this.mName == null) || (this.mName == ""))
+                if((this.mName == null) || (this.mName == "")) {
                     this.mName = _number;
+                }
                 this.mPhotoUri = Uri.parse(cursor.getString(cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)));
 
                 Log.d(this.LOG_TAG, "Contact found. Id: " + mId);
@@ -182,7 +179,7 @@ public class Contact {
             }
             else {
 //                Log.d(this.LOG_TAG, "Contact not found");
-                this.mName = _number;
+                this.mName = null; //_number;
             }
             cursor.close();
         }

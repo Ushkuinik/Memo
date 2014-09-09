@@ -11,8 +11,10 @@
 package company.memo;
 
 import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -30,11 +32,45 @@ import wei.mark.standout.StandOutWindow;
 
 public class ActivityMain extends ActionBarActivity {
 
-    private final String LOG_TAG = "ActivityMain";
+    private final       String LOG_TAG                   = "ActivityMain";
+    public static final String CUSTOM_MEMO_EVENT         = "company.memo.CUSTOM_MEMO_EVENT";
+    public static final int    ACTION_MEMO_UNDEFINED     = 0;
+    public static final int    ACTION_MEMO_ADDED         = 1;
+    public static final int    ACTION_MEMO_DELETED       = 2;
+    public static final int    ACTION_MEMO_CHANGED       = 3;
+    public static final int    ACTION_ATTACHMENT_ADDED   = 4;
+    public static final int    ACTION_ATTACHMENT_DELETED = 5;
 
     private AdapterDatabase mAdapterDatabase;
     private ArrayList<Contact> mContacts = new ArrayList<Contact>();
     private AdapterContact mAdapterContact;
+    public BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(CUSTOM_MEMO_EVENT)) {
+                Log.d("BroadcastReceiver", "Update list");
+                String number = intent.getStringExtra("phoneNumber");
+                int action = intent.getIntExtra("action", ACTION_MEMO_UNDEFINED);
+                int delta = 0;
+                switch(action) {
+                    case ACTION_MEMO_ADDED:
+                        Log.d(LOG_TAG, "ACTION_MEMO_ADDED");
+                        delta = 1;
+                        break;
+                    case ACTION_MEMO_DELETED:
+                        Log.d(LOG_TAG, "ACTION_MEMO_DELETED");
+                        delta = -1;
+                        break;
+                }
+                for(Contact c : mContacts) {
+                    if(c.getIncomingNumber().equals(number)) {
+                        c.setMemoCount(c.getMemoCount() + delta);
+                    }
+                }
+                mAdapterContact.notifyDataSetChanged();
+            }
+        }
+    };
 
 
     @Override
@@ -57,6 +93,11 @@ public class ActivityMain extends ActionBarActivity {
         mAdapterDatabase = new AdapterDatabase(this);
         mAdapterDatabase.open();
         this.listContacts();
+
+        //mReceiver = new IncomingReceiver();
+
+        IntentFilter filter = new IntentFilter(CUSTOM_MEMO_EVENT);
+        registerReceiver(mReceiver, filter);
     }
 
 
@@ -64,6 +105,7 @@ public class ActivityMain extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
         mAdapterDatabase.close();
+        unregisterReceiver(mReceiver);
     }
 
 
@@ -136,3 +178,4 @@ public class ActivityMain extends ActionBarActivity {
         return false;
     }
 }
+

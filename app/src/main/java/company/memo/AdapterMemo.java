@@ -1,6 +1,8 @@
 package company.memo;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,15 +20,13 @@ public class AdapterMemo extends ArrayAdapter<Memo> {
     private LayoutInflater  inflater;
     private ArrayList<Memo> mMemos;
     private Context         mContext;
-    View.OnTouchListener mTouchListener;
 
 
-    AdapterMemo(final Context _context, final ArrayList<Memo> _memos, View.OnTouchListener _listener) {
+    AdapterMemo(final Context _context, final ArrayList<Memo> _memos) {
         super(_context, R.layout.list_item_memo, _memos);
 
         mContext = _context;
         mMemos = _memos;
-        mTouchListener = _listener;
         this.inflater = (LayoutInflater) _context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -55,7 +55,6 @@ public class AdapterMemo extends ArrayAdapter<Memo> {
         View view = convertView;
         if(view == null) {
             view = this.inflater.inflate(R.layout.list_item_memo, parent, false);
-            view.setOnTouchListener(mTouchListener);
         }
 
         Memo memo = this.getMemo(position);
@@ -65,6 +64,15 @@ public class AdapterMemo extends ArrayAdapter<Memo> {
         ((TextView) view.findViewById(R.id.textDayMonth)).setText(memo.getDayMonth());
         ((TextView) view.findViewById(R.id.textTime)).setText(memo.getTime());
         ((TextView) view.findViewById(R.id.textBody)).setText(memo.getBody());
+        TextView title = ((TextView) view.findViewById(R.id.textTitle));
+        if(memo.getTitle().isEmpty()) {
+            title.setText(mContext.getResources().getText(R.string.memo_title_empty));
+            title.setTextColor(Color.parseColor("#888888"));
+        }
+        else {
+            title.setText(memo.getTitle());
+            title.setTextColor(Color.parseColor("#aaaaaa"));
+        }
 
         view.setTag(memo.getId());
 

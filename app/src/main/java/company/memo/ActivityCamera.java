@@ -182,7 +182,7 @@ public class ActivityCamera extends Activity {
 
 
     private File getOutputMediaFile() {
-        Log.d(this.LOG_TAG, "getOutputMediaFile");
+        Log.d(this.LOG_TAG, "getFilePhoto");
 
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.

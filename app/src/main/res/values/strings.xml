@@ -17,5 +17,14 @@
     <string name="action_save">Save</string>
     <string name="action_remove">Remove</string>
     <string name="menu_delete">Delete</string>
+    <string name="unknown_contact">Unknown</string>
+    <string name="menu_image">Picture</string>
+    <string name="dialog_delete_image_message">Delete image from this memo?</string>
+    <string name="dialog_delete_image_title">Delete?</string>
+    <string name="dialog_button_yes">Yes</string>
+    <string name="dialog_button_no">No</string>
+    <string name="memo_title_hint">Enter title</string>
+    <string name="memo_body_hint">Enter memo</string>
+    <string name="memo_title_empty">No title</string>
 
 </resources>

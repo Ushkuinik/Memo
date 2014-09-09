@@ -118,7 +118,8 @@
         android:id="@+id/hsvMemos">
 
     </company.memo.HorizontalListView>
-    <!--
+
+<!--
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -181,19 +182,41 @@
     </HorizontalScrollView>
 -->
 
-<view
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/body"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        class="company.memo.TopWindow$LineEditText"
-        android:background="#d0ffffff"
-        android:capitalize="sentences"
-        android:fadingEdge="vertical"
-        android:gravity="top"
-        android:padding="5dp"
-        android:scrollbars="vertical"
-        android:textSize="18sp"
-        android:textColor="@android:color/black"/>
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+        <view
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/body"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            class="company.memo.TopWindow$LineEditText"
+            android:background="#d0ffffff"
+            android:capitalize="sentences"
+            android:fadingEdge="vertical"
+            android:gravity="top"
+            android:padding="5dp"
+            android:scrollbars="vertical"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"/>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/scrollView"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true">
+
+            <LinearLayout
+                android:id="@+id/layoutAttachments"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#22000000" />
+        </HorizontalScrollView>
+
+    </RelativeLayout>
 
 </LinearLayout>

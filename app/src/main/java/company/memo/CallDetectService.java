@@ -87,7 +87,7 @@ public class CallDetectService extends Service {
                     break;
 
                 case TelephonyManager.CALL_STATE_IDLE:
-                    StandOutWindow.closeAll(context, TopWindow.class);
+//                    StandOutWindow.closeAll(context, TopWindow.class);
                     Log.d(LOG_TAG, "[CALL_STATE_IDLE]");
                     break;
 
