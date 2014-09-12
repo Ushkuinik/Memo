@@ -1,5 +1,6 @@
 package company.memo;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -40,10 +41,6 @@ public class AdapterFile {
         return fileResult;
     }
 
-    static private boolean createDirectories() {
-        boolean result = true;
-        return result;
-    }
 
     /**
      * Create a File for saving a photo
@@ -78,20 +75,20 @@ public class AdapterFile {
      * @param _path full path to original file
      * @return
      */
-    static public File createThumbnail(String _path) {
+    static public File createThumbnail(Context _context, String _path) {
         File filePathSource = new File(_path);
-        return createThumbnail(filePathSource);
+        return createThumbnail(_context, filePathSource);
     }
 
 
-    static public File createThumbnail(File _source) {
+    static public File createThumbnail(Context _context, File _source) {
         String filename = _source.getName(); // get filename from full path
         File fileThumbnail = getFileThumb(filename); // create full path to thumbnail
 
         // if no thumbnail exists, create it
         if(!fileThumbnail.exists())
             if(_source.exists())
-                fileThumbnail = createFileThumbnail(fileThumbnail, _source);
+                fileThumbnail = createFileThumbnail(_context, fileThumbnail, _source);
         return fileThumbnail;
     }
 
@@ -102,73 +99,17 @@ public class AdapterFile {
     }
 
 
-/*
-    static public String ____createThumbnail(File _source) {
-        String thumbPath = null;
-
-        try {
-            ExifInterface exif = new ExifInterface(_source.getPath());
-
-            Bitmap bitmap;
-            if(exif.hasThumbnail()) {
-                byte[] thumbByteArray = exif.getThumbnail();
-                bitmap = BitmapFactory.decodeByteArray(thumbByteArray, 0, thumbByteArray.length);
-            }
-            else {
-                final int THUMB_WIDTH = 512;
-                final int THUMB_HEIGHT = 288;
-                Bitmap srcBitmap = BitmapFactory.decodeFile(_source.getPath());
-                bitmap = ThumbnailUtils.extractThumbnail(srcBitmap, THUMB_WIDTH, THUMB_HEIGHT);
-            }
-            Matrix matrix = new Matrix();
-
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
-            switch(orientation) {
-                case ExifInterface.ORIENTATION_ROTATE_90:
-                    matrix.postRotate(90);
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_180:
-                    matrix.postRotate(180);
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_270:
-                    matrix.postRotate(270);
-                    break;
-                case ExifInterface.ORIENTATION_NORMAL:
-                default:
-                    break;
-            }
-            Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-
-            String thumbName = removeExtension(_source.getName()) + "_thumb.jpg";
-            thumbPath = _source.getParent() + "/" + thumbName;
-            Log.d(LOG_TAG, "thumb path: " + thumbPath);
-
-            FileOutputStream fos = new FileOutputStream(thumbPath);
-            rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            fos.flush();
-            fos.close();
-        }
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
-
-        return thumbPath;
-    }
-*/
-
-
     /**
      *
      * @param _fileThumbnail new thumbnail file to be created
      * @param _fileSource original image file
      * @return created thumbnail file
      */
-    static private File createFileThumbnail(File _fileThumbnail, File _fileSource) {
-        Bitmap bitmap = createBitmapThumbnail(_fileSource, 200, 200); //FIXME: pixels in dimension
-        FileOutputStream fos = null;
+    static private File createFileThumbnail(Context _context, File _fileThumbnail, File _fileSource) {
+
+        ApplicationMemo app = (ApplicationMemo)_context.getApplicationContext();
+        Bitmap bitmap = createBitmapThumbnail(_fileSource, app.Dp2Pixel(70), app.Dp2Pixel(70)); //FIXME: pixels in dimension
+        FileOutputStream fos;
         try {
             fos = new FileOutputStream(_fileThumbnail);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
@@ -192,9 +133,9 @@ public class AdapterFile {
             ExifInterface exif = new ExifInterface(_source.getPath());
 
             Bitmap srcBitmap = BitmapFactory.decodeFile(_source.getPath());
-            //Bitmap bitmap = ThumbnailUtils.extractThumbnail(srcBitmap, _width, _height); // get cropped square thumbnail
+            Bitmap bitmap = ThumbnailUtils.extractThumbnail(srcBitmap, _width, _height); // get cropped square thumbnail
             //Bitmap bitmap = Bitmap.createScaledBitmap(srcBitmap, _width, _height, false); // get resized square thumbnail
-            Bitmap bitmap = resizeImage(srcBitmap, Math.max(_width, _height)); // get proportional thumbnail
+            //Bitmap bitmap = resizeImage(srcBitmap, Math.max(_width, _height)); // get proportional thumbnail
 
             Matrix matrix = new Matrix();
             int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
@@ -256,6 +197,7 @@ public class AdapterFile {
     }
 
 
+/*
     static private String removeExtension(String _filename) {
         String filename = null;
         int pos = _filename.lastIndexOf(".");
@@ -264,6 +206,7 @@ public class AdapterFile {
         }
         return filename;
     }
+*/
 
 
     public static File getOriginalFile(String _thumbPath) {

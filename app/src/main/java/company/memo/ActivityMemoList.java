@@ -79,10 +79,8 @@ public class ActivityMemoList extends ActionBarActivity {
 
         mAdapterDatabase = new AdapterDatabase(this);
         mAdapterDatabase.open();
-//        mAdapterDatabase.logMemos();
 
         mMemos = mAdapterDatabase.getMemos(number);
-//        mAdapterMemo = new AdapterMemo(this, memos, mTouchListener);
         mAdapterMemo = new AdapterMemo(this, mMemos);
 
         mMemoView = (ListView) findViewById(R.id.listView);

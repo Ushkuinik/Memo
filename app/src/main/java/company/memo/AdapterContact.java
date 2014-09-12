@@ -70,7 +70,7 @@ public class AdapterContact extends ArrayAdapter<Contact> {
 
         Contact contact = this.getContact(position);
 
-        Log.d(this.LOG_TAG, ": getView: pos: " + position + ", name: " + contact.getIncomingNumber() + ", count: " + contact.getMemoCount());
+        //Log.d(this.LOG_TAG, ": getView: pos: " + position + ", name: " + contact.getIncomingNumber() + ", count: " + contact.getMemoCount());
 
         view.setTag(contact.getIncomingNumber());
 
@@ -79,7 +79,7 @@ public class AdapterContact extends ArrayAdapter<Contact> {
             name = mContext.getString(R.string.unknown_contact) + " (" + contact.getIncomingNumber() + ")";
         ((TextView) view.findViewById(R.id.name)).setText(name);
 
-        ((TextView) view.findViewById(R.id.count)).setText(Integer.toString(contact.getMemoCount()));
+        //((TextView) view.findViewById(R.id.count)).setText(Integer.toString(contact.getMemoCount()));
 
         Bitmap bm = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_note_stroke2).copy(Bitmap.Config.ARGB_8888, true);
 

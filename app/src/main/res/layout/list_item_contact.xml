@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
               android:orientation="horizontal">
 
     <ImageView
@@ -11,33 +11,16 @@
         android:layout_gravity="center_horizontal"
         android:src="@drawable/ic_unknown" />
 
-
-    <LinearLayout
+    <TextView
+        android:id="@+id/name"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_weight="1">
-
-        <TextView
-            android:id="@+id/name"
-            android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            android:layout_margin="2dp"
-            android:gravity="center_vertical"
-            android:text="Agent Smith"
-            android:textSize="18sp" />
-
-        <TextView
-            android:id="@+id/count"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="2dp"
-            android:gravity="center_vertical"
-            android:text="(10 memos)"
-            android:textSize="14sp"
-            android:src="@drawable/ic_unknown" />
-
-    </LinearLayout>
+        android:layout_height="match_parent"
+        android:layout_margin="2dp"
+        android:paddingLeft="8dp"
+        android:gravity="center_vertical"
+        android:text="Agent Smith"
+        android:textSize="18sp"
+        android:layout_weight="1" />
 
     <ImageView
         android:id="@+id/memos"
