@@ -12,22 +12,28 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.nhaarman.listviewanimations.appearance.simple.SwingBottomInAnimationAdapter;
+import com.nhaarman.listviewanimations.itemmanipulation.swipedismiss.OnDismissCallback;
+import com.nhaarman.listviewanimations.itemmanipulation.swipedismiss.SwipeDismissAdapter;
+
 import java.util.ArrayList;
 
-public class ActivityMemoList extends ActionBarActivity {
+public class ActivityMemoList extends ActionBarActivity implements OnDismissCallback {
 
-    private final String      LOG_TAG   = "ActivityMemoList";
+    private final String LOG_TAG = "ActivityMemoList";
 
-    private AdapterDatabase   mAdapterDatabase;
-    private AdapterMemo       mAdapterMemo;
-    private ArrayList<Memo>   mMemos;
-    private ListView          mMemoView;
+    private AdapterDatabase mAdapterDatabase;
+    private ArrayList<Memo> mMemos;
+    //private AdapterMemo     mAdapterMemo;
+    private AdapterCard     mAdapterCard;
 
-    public  BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    private ListView mMemoView;
+    public BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(ActivityMain.CUSTOM_MEMO_EVENT)) {
@@ -35,7 +41,7 @@ public class ActivityMemoList extends ActionBarActivity {
                 if(id != 0) {
                     Memo memo = getMemoById(id);
                     if(memo != null) {
-                        int action = intent.getIntExtra("action",  ActivityMain.ACTION_MEMO_UNDEFINED);
+                        int action = intent.getIntExtra("action", ActivityMain.ACTION_MEMO_UNDEFINED);
                         switch(action) {
                             case ActivityMain.ACTION_MEMO_ADDED:
                                 Log.d(LOG_TAG, "ACTION_MEMO_ADDED");
@@ -53,12 +59,14 @@ public class ActivityMemoList extends ActionBarActivity {
                                 memo.setTitle(title);
                                 break;
                         }
-                        mAdapterMemo.notifyDataSetChanged();
+                        //mAdapterMemo.notifyDataSetChanged();
+                        mAdapterCard.notifyDataSetChanged();
                     }
                 }
             }
         }
     };
+
 
     private Memo getMemoById(long _id) {
         for(Memo a : mMemos) {
@@ -73,6 +81,44 @@ public class ActivityMemoList extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_memo_list2);
+
+        Intent intent = getIntent();
+        String number = intent.getStringExtra("phoneNumber");
+
+        mAdapterDatabase = new AdapterDatabase(this);
+        mAdapterDatabase.open();
+
+        mMemos = mAdapterDatabase.getMemos(number);
+        mAdapterCard = new AdapterCard(this, mMemos);
+
+        mMemoView = (ListView) findViewById(R.id.activity_googlecards_listview);
+
+
+        SwingBottomInAnimationAdapter swingBottomInAnimationAdapter =
+                new SwingBottomInAnimationAdapter(new SwipeDismissAdapter(mAdapterCard, this));
+        swingBottomInAnimationAdapter.setAbsListView(mMemoView);
+
+        assert swingBottomInAnimationAdapter.getViewAnimator() != null;
+        swingBottomInAnimationAdapter.getViewAnimator().setInitialDelayMillis(300);
+
+        mMemoView.setAdapter(swingBottomInAnimationAdapter);
+        mMemoView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Log.d(LOG_TAG, "Click detected, position: " + position + " id:" + id + " tag: " + view.getTag().toString());
+
+                long memo_id = ((Long) view.getTag()).longValue();
+                Intent intent = new Intent(getBaseContext(), ActivityEditMemo.class);
+                intent.putExtra("memoId", memo_id);
+                startActivity(intent);
+            }
+        });
+
+        IntentFilter filter = new IntentFilter(ActivityMain.CUSTOM_MEMO_EVENT);
+        registerReceiver(mReceiver, filter);
+
+/*
         setContentView(R.layout.activity_memo_list);
         Intent intent = getIntent();
         String number = intent.getStringExtra("phoneNumber");
@@ -112,7 +158,10 @@ public class ActivityMemoList extends ActionBarActivity {
 
         IntentFilter filter = new IntentFilter(ActivityMain.CUSTOM_MEMO_EVENT);
         registerReceiver(mReceiver, filter);
+*/
     }
+
+
 
 
     @Override
@@ -166,7 +215,8 @@ public class ActivityMemoList extends ActionBarActivity {
 //                Log.d(LOG_TAG, "Delete item, " + " id: " + m.getId());// + " tag: " + view.getTag().toString());
                 Toast.makeText(this, "Deleted item: " + memo.getId(), Toast.LENGTH_SHORT).show();
                 mAdapterDatabase.deleteMemo(memo.getId());
-                mAdapterMemo.remove(memo);
+                //mAdapterMemo.remove(memo);
+                mAdapterCard.remove(memo);
 
                 Intent i = new Intent();
                 i.setAction(ActivityMain.CUSTOM_MEMO_EVENT);
@@ -178,6 +228,24 @@ public class ActivityMemoList extends ActionBarActivity {
                 return true;
             default:
                 return super.onContextItemSelected(item);
+        }
+    }
+
+
+    @Override
+    public void onDismiss(ViewGroup viewGroup, int[] ints) {
+        Log.d(LOG_TAG, "ids: " + ints);
+        for (int position : ints) {
+            Log.d(LOG_TAG, "p: " + position);
+            Memo memo = mAdapterCard.getItem(position);
+            mAdapterDatabase.deleteMemo(memo.getId());
+            mAdapterCard.remove(memo);
+
+            Intent i = new Intent();
+            i.setAction(ActivityMain.CUSTOM_MEMO_EVENT);
+            i.putExtra("phoneNumber", memo.getNumber());
+            i.putExtra("action", ActivityMain.ACTION_MEMO_DELETED);
+            getApplicationContext().sendBroadcast(i);
         }
     }
 }

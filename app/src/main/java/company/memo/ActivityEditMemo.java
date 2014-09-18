@@ -128,7 +128,7 @@ public class ActivityEditMemo extends ActionBarActivity {
             magic.setVisibility(View.INVISIBLE);
             mMagicState = MAGIC_STATE.COLLAPSED;
             magic.getLayoutParams().width = 1;
-            magicButton.setImageResource(R.drawable.ic_attachments1);
+            magicButton.setImageResource(R.drawable.ic_memo_image);
 
             if(mAttachments.size() == 0) {
                 magicButton.setVisibility(View.INVISIBLE);
@@ -222,7 +222,7 @@ public class ActivityEditMemo extends ActionBarActivity {
 
                                                       LinearLayout layout = (LinearLayout) findViewById(R.id.layoutAttachmentsMagic);
                                                       layout.removeView(v);
-                                                      findViewById(R.id.scrollViewMagic).getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                                                      //findViewById(R.id.scrollViewMagic).getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
                                                       if(mAttachments.size() == 0)
                                                           findViewById(R.id.magicButton).setVisibility(View.INVISIBLE);
                                                   }
@@ -308,6 +308,22 @@ public class ActivityEditMemo extends ActionBarActivity {
 
             case R.id.action_audio:
                 Log.i(LOG_TAG, "Action [Audio]");
+                View layout = findViewById(R.id.layoutAttachmentsMagic);
+                layout.requestLayout();
+                Log.d(LOG_TAG, "layout.w: " + layout.getWidth());
+
+                View scroll = findViewById(R.id.scrollViewMagic);
+                //scroll.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                scroll.requestLayout();
+                Log.d(LOG_TAG, "scroll.w: " + scroll.getWidth());
+
+                View external = findViewById(R.id.external_layout);
+                scroll.requestLayout();
+                Log.d(LOG_TAG, "external.w: " + external.getWidth());
+
+                View main = findViewById(R.id.main_layout);
+                scroll.requestLayout();
+                Log.d(LOG_TAG, "main.w: " + main.getWidth());
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -400,7 +416,17 @@ public class ActivityEditMemo extends ActionBarActivity {
 */
         }
         else {
-            findViewById(R.id.scrollViewMagic).getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+//            findViewById(R.id.scrollViewMagic).getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+            //findViewById(R.id.scrollViewMagic).getLayoutParams().width = getMagicScrollWidth();
+            //findViewById(R.id.scrollViewMagic).requestLayout();
+            Log.d(this.LOG_TAG, "s_w: " + findViewById(R.id.scrollViewMagic).getWidth());
+            Log.d(this.LOG_TAG, "l_w: " + findViewById(R.id.layoutAttachmentsMagic).getWidth());
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    findViewById(R.id.scrollViewMagic).getLayoutParams().width = getMagicScrollWidth();
+                }
+            }, 200L);
         }
 
 
@@ -414,27 +440,32 @@ public class ActivityEditMemo extends ActionBarActivity {
         //mVibrator.vibrate(20);
 
         View magic = findViewById(R.id.scrollViewMagic);
-        View layout = findViewById(R.id.layoutAttachmentsMagic);
-        View button = findViewById(R.id.magicButton);
+//        View layout = findViewById(R.id.layoutAttachmentsMagic);
+//        View button = findViewById(R.id.magicButton);
 
-        ApplicationMemo app = (ApplicationMemo) getApplicationContext();
-        app.update();
+//        ApplicationMemo app = (ApplicationMemo) getApplicationContext();
+//        app.update();
 
         if((mMagicState == MAGIC_STATE.EXPANDED) || (mMagicState == MAGIC_STATE.EXPANDING)) {
             Log.d(this.LOG_TAG, "Collapsing");
             mMagicState = MAGIC_STATE.COLLAPSING;
             magicAnimate(magic, 1); // 0 makes view to expand for full width
-            ((ImageView) _v).setImageResource(R.drawable.ic_attachments1);
+            ((ImageView) _v).setImageResource(R.drawable.ic_memo_image);
         }
         else if((mMagicState == MAGIC_STATE.COLLAPSED) || (mMagicState == MAGIC_STATE.COLLAPSING)){
             Log.d(this.LOG_TAG, "Expanding");
             magic.setVisibility(View.VISIBLE);
             mMagicState = MAGIC_STATE.EXPANDING;
-            magicAnimate(magic, Math.min(app.mScreenWidth - button.getWidth(), layout.getWidth()));
+            magicAnimate(magic, getMagicScrollWidth());
             ((ImageView) _v).setImageResource(R.drawable.ic_attachments2);
         }
     }
 
+    private int getMagicScrollWidth() {
+        return Math.min(findViewById(R.id.external_layout).getWidth() -
+                                     findViewById(R.id.magicButton).getWidth(),
+                             findViewById(R.id.layoutAttachmentsMagic).getWidth());
+    }
 
     public void magicAnimate(final View _view, int _width) {
         final int initialWidth = _view.getWidth();

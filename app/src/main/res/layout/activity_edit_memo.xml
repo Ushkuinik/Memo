@@ -12,11 +12,13 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
             android:text=""
             android:singleLine="true"
             android:id="@+id/title"/>
 
         <RelativeLayout
+            android:id="@+id/main_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
             <view
@@ -26,6 +28,7 @@
                 android:layout_height="match_parent"
                 class="company.memo.TopWindow$LineEditText"
                 android:background="#d0ffffff"
+                android:fontFamily="sans-serif-light"
                 android:capitalize="sentences"
                 android:fadingEdge="vertical"
                 android:gravity="top"
@@ -35,13 +38,13 @@
                 android:textColor="@android:color/black"/>
 
             <LinearLayout
+                android:id="@+id/external_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
-                android:orientation="horizontal"
-                android:gravity="right"
-                android:layout_alignParentLeft="true">
+                android:gravity="right">
 
                 <HorizontalScrollView
                     android:layout_width="wrap_content"
@@ -61,6 +64,7 @@
                         android:background="#ff82ff5e">
 
 
+<!--
                         <ImageView
                             android:layout_width="70dp"
                             android:layout_height="70dp"
@@ -86,6 +90,7 @@
                             android:layout_height="70dp"
                             android:src="@drawable/ic_launcher"
                             android:onClick="onClickMagicButton"/>
+-->
 
                     </LinearLayout>
                 </HorizontalScrollView>

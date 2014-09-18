@@ -15,6 +15,7 @@
         android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fontFamily="sans-serif-light"
         android:layout_margin="2dp"
         android:paddingLeft="8dp"
         android:gravity="center_vertical"

@@ -138,25 +138,26 @@ public class AdapterDatabase {
         if(_number == null) {
             return null;
         }
-        String[] columns = new String[] {KEY_ID, KEY_NUMBER, KEY_DATE, KEY_TITLE, KEY_BODY};
-        String selection = KEY_NUMBER + "=?";
-        String[] selectionArgs = {_number};
-        Cursor cursor = m_db.query(DATABASE_TABLE1, columns, selection, selectionArgs, null, null, null);
 
         ArrayList<Memo> memos = new ArrayList<Memo>();
+        String sql = "SELECT m.id, m.number, m.date, m.title, m.body, COUNT(a.memo_id) as count FROM memo m LEFT OUTER JOIN attachment a ON a.memo_id=m.id GROUP BY a.memo_id, m.id ORDER BY m.id DESC;";
+        Cursor cursor1 = m_db.rawQuery(sql, null);
+        if(cursor1 != null) {
+            while(cursor1.moveToNext()) {
+                Log.d(this.LOG_TAG, "Cursor[5]: " + cursor1.getString(5));
 
-        Log.d(this.LOG_TAG, "getMemos found " + cursor.getCount() + " memos for number: [" + _number + "]");
-
-        if(cursor != null) {
-            while(cursor.moveToNext()) {
-                String id = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_ID));
-                String title = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_TITLE));
-                String body = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_BODY));
-                String timestamp = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_DATE));
-                Memo newMemo = new Memo(Long.parseLong(id), _number, title, body, timestamp);
+                String id = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_ID));
+                String number = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_NUMBER));
+                String title = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_TITLE));
+                String body = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_BODY));
+                String timestamp = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_DATE));
+                String count = cursor1.getString(cursor1.getColumnIndex("count"));
+                Memo newMemo = new Memo(Long.parseLong(id), _number, title, body, timestamp, Integer.parseInt(count));
                 memos.add(newMemo);
             }
         }
+        cursor1.close();
+
         return memos;
     }
 
@@ -200,7 +201,7 @@ public class AdapterDatabase {
             String title = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_TITLE));
             String body = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_BODY));
             String timestamp = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_DATE));
-            memo = new Memo(_id, number, title, body, timestamp);
+            memo = new Memo(_id, number, title, body, timestamp, 99);
         }
 
         return memo;

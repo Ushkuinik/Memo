@@ -67,7 +67,12 @@ public class AdapterMemoHorizontal extends ArrayAdapter<Memo> {
             ((TextView) view.findViewById(R.id.textTitle)).setText(R.string.memo_title_empty);
         else
             ((TextView) view.findViewById(R.id.textTitle)).setText(memo.getTitle());
-        ((ImageView) view.findViewById(R.id.imageThumbnail)).setImageResource(R.drawable.ic_sheet);
+
+        if(memo.getAttachmentCount() == 0)
+            ((ImageView) view.findViewById(R.id.imageThumbnail)).setImageResource(R.drawable.ic_document_text);
+        else
+            ((ImageView) view.findViewById(R.id.imageThumbnail)).setImageResource(R.drawable.ic_document_text_image);
+
         if(memo.isSelected())
             view.findViewById(R.id.imageOverlay).setVisibility(View.INVISIBLE);
         else

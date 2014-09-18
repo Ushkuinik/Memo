@@ -17,13 +17,15 @@ public class Memo {
     private boolean  mSelected = false;
     private Date     mDate     = null;
     private Calendar mCalendar = Calendar.getInstance();
+    private int mAttachmentCount;
 
 
-    Memo(long _id, String _number, String _title, String _body, String _timestamp) {
+    Memo(long _id, String _number, String _title, String _body, String _timestamp, int _count) {
         this.mId = _id;
         this.mNumber = _number;
         this.mTitle = _title;
         this.mBody = _body;
+        this.mAttachmentCount = _count;
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
@@ -35,6 +37,11 @@ public class Memo {
         catch(ParseException e) {
             e.printStackTrace();
         }
+    }
+
+
+    public int getAttachmentCount() {
+        return mAttachmentCount;
     }
 
 
@@ -80,6 +87,12 @@ public class Memo {
 
     public void setTitle(String _title) {
         this.mTitle = _title;
+    }
+
+
+    public String getDateFormatted(String _format) {
+        SimpleDateFormat format = new SimpleDateFormat(_format);
+        return format.format(mDate);
     }
 
 

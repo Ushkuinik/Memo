@@ -81,17 +81,25 @@ public class AdapterContact extends ArrayAdapter<Contact> {
 
         //((TextView) view.findViewById(R.id.count)).setText(Integer.toString(contact.getMemoCount()));
 
-        Bitmap bm = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_note_stroke2).copy(Bitmap.Config.ARGB_8888, true);
+        Bitmap bm;
+        if(contact.getMemoCount() == 1) {
+            bm = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_memos1).copy(Bitmap.Config.ARGB_8888, true);
+        }
+        else {
+            bm = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_memos3).copy(Bitmap.Config.ARGB_8888, true);
+        }
+//        Bitmap bm = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_note_stroke2).copy(Bitmap.Config.ARGB_8888, true);
 
         String text = Integer.toString(contact.getMemoCount());
         Paint paint = new Paint();
         paint.setColor(Color.parseColor("#888888"));
-        paint.setTextSize(DP2Pixel(14.0f));
+        ApplicationMemo app = ((ApplicationMemo)mContext.getApplicationContext());
+        paint.setTextSize(app.Dp2Pixel(14));
         Rect bounds = new Rect();
         paint.getTextBounds(text, 0, text.length(), bounds);
 
         Canvas canvas = new Canvas(bm);
-        canvas.drawText(text, (bm.getWidth() - bounds.width())/ 2, (bm.getHeight() + bounds.height()) / 2, paint);
+        canvas.drawText(text, (bm.getWidth() - bounds.width()) / 2 - app.Dp2Pixel(4), (bm.getHeight() + bounds.height() + app.Dp2Pixel(16)) / 2, paint);
 
         ((ImageView) view.findViewById(R.id.memos)).setImageBitmap(bm);
 
@@ -105,13 +113,6 @@ public class AdapterContact extends ArrayAdapter<Contact> {
 
     Contact getContact(final int position) {
         return (this.getItem(position));
-    }
-
-    private float DP2Pixel(float _dp) {
-        WindowManager wm = (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics metrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(metrics);
-        return _dp * metrics.density;
     }
 }
 
