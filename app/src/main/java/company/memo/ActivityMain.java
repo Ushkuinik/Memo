@@ -50,27 +50,49 @@ public class ActivityMain extends ActionBarActivity {
             if(intent.getAction().equals(CUSTOM_MEMO_EVENT)) {
                 Log.d("BroadcastReceiver", "Update list");
                 String number = intent.getStringExtra("phoneNumber");
+                Log.d("BroadcastReceiver", "Number: " + number);
+
                 int action = intent.getIntExtra("action", ACTION_MEMO_UNDEFINED);
-                int delta = 0;
+
+                Contact contact = getContactByNumber(number);
+
                 switch(action) {
                     case ACTION_MEMO_ADDED:
                         Log.d(LOG_TAG, "ACTION_MEMO_ADDED");
-                        delta = 1;
+                        if(contact != null)
+                            contact.setMemoCount(contact.getMemoCount() + 1);
+                        else {
+                            contact = new Contact(getApplicationContext(), number);
+                            contact.setMemoCount(1);
+                            mContacts.add(contact);
+                        }
                         break;
+
                     case ACTION_MEMO_DELETED:
                         Log.d(LOG_TAG, "ACTION_MEMO_DELETED");
-                        delta = -1;
+                        contact.setMemoCount(contact.getMemoCount() - 1);
+                        if(contact.getMemoCount() >= 0)
+                            mContacts.remove(contact);
                         break;
+
+                    default:
+                        return;
                 }
-                for(Contact c : mContacts) {
-                    if(c.getIncomingNumber().equals(number)) {
-                        c.setMemoCount(c.getMemoCount() + delta);
-                    }
-                }
+
                 mAdapterContact.notifyDataSetChanged();
             }
         }
     };
+
+
+    private Contact getContactByNumber(String _number){
+        for(Contact c : mContacts) {
+            if(c.getIncomingNumber().equals(_number)) {
+                return c;
+            }
+        }
+        return null;
+    }
 
 
     @Override
@@ -92,7 +114,10 @@ public class ActivityMain extends ActionBarActivity {
 
         mAdapterDatabase = new AdapterDatabase(this);
         mAdapterDatabase.open();
-        this.listContacts();
+
+        mContacts = mAdapterDatabase.selectContacts();
+        this.mAdapterContact = new AdapterContact(this, mContacts);
+        listContacts.setAdapter(this.mAdapterContact);
 
         //mReceiver = new IncomingReceiver();
 
@@ -131,7 +156,7 @@ public class ActivityMain extends ActionBarActivity {
                 StandOutWindow.closeAll(this, TopWindow.class);
                 StandOutWindow.show(this, TopWindow.class, StandOutWindow.DEFAULT_ID);
                 Bundle bundle = new Bundle();
-                bundle.putString("phoneNumber", "1234");
+                bundle.putString("phoneNumber", "12345689");
                 StandOutWindow.sendData(this, TopWindow.class, StandOutWindow.DEFAULT_ID, CallDetectService.GOT_PHONE_NUMBER, bundle, null, 0);
                 break;
 
@@ -150,21 +175,6 @@ public class ActivityMain extends ActionBarActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-
-    /**
-     * Looks for ...
-     *
-     */
-    private void listContacts() {
-
-        Log.d(this.LOG_TAG, "listContacts");
-
-        mContacts = mAdapterDatabase.selectContacts();
-        this.mAdapterContact = new AdapterContact(this, mContacts);
-        ListView listContacts = (ListView)findViewById(R.id.listView);
-        listContacts.setAdapter(this.mAdapterContact);
     }
 
 

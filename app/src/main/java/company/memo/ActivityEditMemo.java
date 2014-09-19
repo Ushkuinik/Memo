@@ -1,6 +1,5 @@
 package company.memo;
 
-import android.animation.LayoutTransition;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,7 +21,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
@@ -225,6 +223,12 @@ public class ActivityEditMemo extends ActionBarActivity {
                                                       //findViewById(R.id.scrollViewMagic).getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
                                                       if(mAttachments.size() == 0)
                                                           findViewById(R.id.magicButton).setVisibility(View.INVISIBLE);
+
+                                                      Intent i = new Intent();
+                                                      i.setAction(ActivityMain.CUSTOM_MEMO_EVENT);
+                                                      i.putExtra("memoId", mMemoId);
+                                                      i.putExtra("action", ActivityMain.ACTION_ATTACHMENT_DELETED);
+                                                      getApplicationContext().sendBroadcast(i);
                                                   }
                                               }
                                           }
@@ -308,22 +312,23 @@ public class ActivityEditMemo extends ActionBarActivity {
 
             case R.id.action_audio:
                 Log.i(LOG_TAG, "Action [Audio]");
-                View layout = findViewById(R.id.layoutAttachmentsMagic);
-                layout.requestLayout();
-                Log.d(LOG_TAG, "layout.w: " + layout.getWidth());
-
-                View scroll = findViewById(R.id.scrollViewMagic);
-                //scroll.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-                scroll.requestLayout();
-                Log.d(LOG_TAG, "scroll.w: " + scroll.getWidth());
-
-                View external = findViewById(R.id.external_layout);
-                scroll.requestLayout();
-                Log.d(LOG_TAG, "external.w: " + external.getWidth());
-
-                View main = findViewById(R.id.main_layout);
-                scroll.requestLayout();
-                Log.d(LOG_TAG, "main.w: " + main.getWidth());
+                mAdapterDatabase.deleteLostAttachments();
+//                View layout = findViewById(R.id.layoutAttachmentsMagic);
+//                layout.requestLayout();
+//                Log.d(LOG_TAG, "layout.w: " + layout.getWidth());
+//
+//                View scroll = findViewById(R.id.scrollViewMagic);
+//                //scroll.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+//                scroll.requestLayout();
+//                Log.d(LOG_TAG, "scroll.w: " + scroll.getWidth());
+//
+//                View external = findViewById(R.id.external_layout);
+//                scroll.requestLayout();
+//                Log.d(LOG_TAG, "external.w: " + external.getWidth());
+//
+//                View main = findViewById(R.id.main_layout);
+//                scroll.requestLayout();
+//                Log.d(LOG_TAG, "main.w: " + main.getWidth());
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -429,6 +434,11 @@ public class ActivityEditMemo extends ActionBarActivity {
             }, 200L);
         }
 
+        Intent i = new Intent();
+        i.setAction(ActivityMain.CUSTOM_MEMO_EVENT);
+        i.putExtra("memoId", mMemoId);
+        i.putExtra("action", ActivityMain.ACTION_ATTACHMENT_ADDED);
+        getApplicationContext().sendBroadcast(i);
 
 //        magicScrollToRight();
     }

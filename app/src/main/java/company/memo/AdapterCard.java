@@ -78,7 +78,7 @@ public class AdapterCard extends ArrayAdapter<Memo> {
 
 
         ApplicationMemo app = (ApplicationMemo)mContext.getApplicationContext();
-        Bitmap bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_attachments1).copy(Bitmap.Config.ARGB_8888, true);
+        Bitmap bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ic_paperclip).copy(Bitmap.Config.ARGB_8888, true);
 
         String text = Integer.toString(memo.getAttachmentCount());
         Paint paint = new Paint();
@@ -89,20 +89,26 @@ public class AdapterCard extends ArrayAdapter<Memo> {
         Rect bounds = new Rect();
         paint.getTextBounds(text, 0, text.length(), bounds);
 
-        Canvas canvas = new Canvas(bitmap);
-        Paint paint_fill = new Paint();
-        paint_fill.setColor(Color.parseColor("#aaffffff"));
-        int h = bounds.height() + app.Dp2Pixel(7);
-        int w = Math.max(bounds.width() + app.Dp2Pixel(7), h);
+        if(memo.getAttachmentCount() == 0) {
+            view.findViewById(R.id.card_attachments).setVisibility(View.GONE);
+        } else {
+            Canvas canvas = new Canvas(bitmap);
+            Paint paint_fill = new Paint();
+            paint_fill.setColor(Color.parseColor("#aaffffff"));
+            int h = bounds.height() + app.Dp2Pixel(7);
+            int w = Math.max(bounds.width() + app.Dp2Pixel(7), h);
 
-        float r = (float)h / 2;
-        RectF rectF = new RectF(0, 0, w, h);
-        rectF.offsetTo((bitmap.getWidth() - rectF.width())/ 2, (bitmap.getHeight() - rectF.height()) / 2);
+            float r = (float)h / 2;
+            RectF rectF = new RectF(0, 0, w, h);
+            rectF.offsetTo((bitmap.getWidth() - rectF.width())/ 2, (bitmap.getHeight() - rectF.height()) / 2);
 
-        canvas.drawRoundRect(rectF, r, r, paint_fill);
-        canvas.drawText(text, (bitmap.getWidth() - bounds.width())/ 2, (bitmap.getHeight() + bounds.height()) / 2, paint);
+            canvas.drawRoundRect(rectF, r, r, paint_fill);
+            canvas.drawText(text, (bitmap.getWidth() - bounds.width())/ 2, (bitmap.getHeight() + bounds.height()) / 2, paint);
 
-        ((ImageView) view.findViewById(R.id.card_attachments)).setImageBitmap(bitmap);
+            ((ImageView) view.findViewById(R.id.card_attachments)).setImageBitmap(bitmap);
+            view.findViewById(R.id.card_attachments).setVisibility(View.VISIBLE);
+        }
+
 
 
         view.setTag(memo.getId());

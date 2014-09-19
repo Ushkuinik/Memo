@@ -75,8 +75,14 @@ public class AdapterDatabase {
     }
 
 
-    public boolean deleteMemo(long _id) {
-        return m_db.delete(DATABASE_TABLE1, KEY_ID + "=" + _id, null) > 0;
+    public void deleteMemo(long _id) {
+        Log.d(this.LOG_TAG, "deleteMemo");
+        String[] args = {_id + ""};
+        int count = m_db.delete(DATABASE_TABLE2, KEY_MEMO_ID + "=?", args);
+        Log.d(this.LOG_TAG, "deleted " + count + " attachments");
+
+        count = m_db.delete(DATABASE_TABLE1, KEY_ID + "=?", args);
+        Log.d(this.LOG_TAG, "deleted " + count + " memo");
     }
 
 
@@ -140,23 +146,24 @@ public class AdapterDatabase {
         }
 
         ArrayList<Memo> memos = new ArrayList<Memo>();
-        String sql = "SELECT m.id, m.number, m.date, m.title, m.body, COUNT(a.memo_id) as count FROM memo m LEFT OUTER JOIN attachment a ON a.memo_id=m.id GROUP BY a.memo_id, m.id ORDER BY m.id DESC;";
-        Cursor cursor1 = m_db.rawQuery(sql, null);
-        if(cursor1 != null) {
-            while(cursor1.moveToNext()) {
-                Log.d(this.LOG_TAG, "Cursor[5]: " + cursor1.getString(5));
+        String sql = "SELECT m.id, m.number, m.date, m.title, m.body, COUNT(a.memo_id) as count FROM memo m LEFT OUTER JOIN attachment a ON a.memo_id=m.id WHERE m.number=? GROUP BY a.memo_id, m.id ORDER BY m.id DESC;";
+        String[] args = {_number};
+        Cursor cursor = m_db.rawQuery(sql, args);
+        if(cursor != null) {
+            while(cursor.moveToNext()) {
+                Log.d(this.LOG_TAG, "Cursor[5]: " + cursor.getString(5));
 
-                String id = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_ID));
-                String number = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_NUMBER));
-                String title = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_TITLE));
-                String body = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_BODY));
-                String timestamp = cursor1.getString(cursor1.getColumnIndex(AdapterDatabase.KEY_DATE));
-                String count = cursor1.getString(cursor1.getColumnIndex("count"));
+                String id = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_ID));
+                //String number = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_NUMBER));
+                String title = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_TITLE));
+                String body = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_BODY));
+                String timestamp = cursor.getString(cursor.getColumnIndex(AdapterDatabase.KEY_DATE));
+                String count = cursor.getString(cursor.getColumnIndex("count"));
                 Memo newMemo = new Memo(Long.parseLong(id), _number, title, body, timestamp, Integer.parseInt(count));
                 memos.add(newMemo);
             }
         }
-        cursor1.close();
+        cursor.close();
 
         return memos;
     }
@@ -250,6 +257,25 @@ public class AdapterDatabase {
     public boolean deleteAttachment(long _id) {
         Log.d(this.LOG_TAG, "deleteAttachment");
         return m_db.delete(DATABASE_TABLE2, KEY_ID + "=" + _id, null) > 0;
+    }
+
+
+    /**
+     * Deletes attachments related to nonexistent memos
+     */
+    public void deleteLostAttachments() {
+        String sql = "SELECT a.memo_id FROM attachment a LEFT JOIN memo m ON a.memo_id=m.id WHERE m.id IS NULL GROUP BY a.memo_id;";
+        Cursor cursor = m_db.rawQuery(sql, null);
+        if(cursor != null) {
+            while(cursor.moveToNext()) {
+                String memo_id = cursor.getString(0);
+                String[] args = {memo_id};
+                int count = m_db.delete(DATABASE_TABLE2, KEY_MEMO_ID + "=?", args);
+                Log.d(this.LOG_TAG, "Deleted " + count + " lost attachment for memo_id: " + memo_id);
+            }
+        }
+        cursor.close();
+
     }
 
 

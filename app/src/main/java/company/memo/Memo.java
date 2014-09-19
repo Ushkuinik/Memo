@@ -17,6 +17,13 @@ public class Memo {
     private boolean  mSelected = false;
     private Date     mDate     = null;
     private Calendar mCalendar = Calendar.getInstance();
+
+
+    public void setAttachmentCount(int _count) {
+        this.mAttachmentCount = _count;
+    }
+
+
     private int mAttachmentCount;
 
 

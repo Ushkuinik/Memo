@@ -58,6 +58,14 @@ public class ActivityMemoList extends ActionBarActivity implements OnDismissCall
                                 memo.setBody(body);
                                 memo.setTitle(title);
                                 break;
+                            case ActivityMain.ACTION_ATTACHMENT_ADDED:
+                                Log.d(LOG_TAG, "ACTION_ATTACHMENT_ADDED");
+                                memo.setAttachmentCount(memo.getAttachmentCount() + 1);
+                                break;
+                            case ActivityMain.ACTION_ATTACHMENT_DELETED:
+                                Log.d(LOG_TAG, "ACTION_ATTACHMENT_DELETED");
+                                memo.setAttachmentCount(memo.getAttachmentCount() - 1);
+                                break;
                         }
                         //mAdapterMemo.notifyDataSetChanged();
                         mAdapterCard.notifyDataSetChanged();
